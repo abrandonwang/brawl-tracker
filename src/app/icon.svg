@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#0f2440"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+
+  <!-- Lens circle -->
+  <circle cx="13.5" cy="13.5" r="7.5" fill="none" stroke="url(#lens)" stroke-width="2.8"/>
+
+  <!-- Star inside lens -->
+  <polygon
+    points="13.5,8.5 14.6,11.9 18.2,11.9 15.3,14 16.4,17.4 13.5,15.3 10.6,17.4 11.7,14 8.8,11.9 12.4,11.9"
+    fill="url(#lens)"
+    opacity="0.9"
+  />
+
+  <!-- Handle -->
+  <line x1="19.5" y1="19.5" x2="26" y2="26" stroke="url(#lens)" stroke-width="2.8" stroke-linecap="round"/>
+</svg>
