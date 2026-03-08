@@ -3,8 +3,10 @@ import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 
-export default function ThreeScene() {
+export default function ThreeScene({ attack }: { attack: number }) {
   const mountRef = useRef<HTMLDivElement>(null)
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null)
+  const animationsRef = useRef<THREE.AnimationClip[]>([])
 
   useEffect(() => {
     const scene = new THREE.Scene()
@@ -14,20 +16,19 @@ export default function ThreeScene() {
       0.1,
       1000
     )
-    let mixer;
     camera.position.z = 13
-    let bibi;
 
     const loader = new GLTFLoader()
     loader.load("/bibi_gamer_geo.glb", (gltf) => {
-        bibi = gltf.scene;
+        const bibi = gltf.scene;
         bibi.position.y = -1.20;
         bibi.rotation.y = Math.PI;
         scene.add(bibi)
 
-        mixer = new THREE.AnimationMixer(bibi)
-        mixer.clipAction(gltf.animations[3]).play()
-        
+        animationsRef.current = gltf.animations
+        mixerRef.current = new THREE.AnimationMixer(bibi)
+        mixerRef.current.clipAction(gltf.animations[3]).play()
+
         console.log(gltf.animations)
     })
 
@@ -45,7 +46,7 @@ export default function ThreeScene() {
     const reRender3D = () => {
       requestAnimationFrame(reRender3D)
       renderer.render(scene, camera)
-      if (mixer) mixer.update(0.02);
+      if (mixerRef.current) mixerRef.current.update(0.02);
     }
     reRender3D()
 
@@ -54,6 +55,27 @@ export default function ThreeScene() {
       mountRef.current?.removeChild(renderer.domElement)
     }
   }, [])
+
+  useEffect(() => {
+    const mixer = mixerRef.current
+    if (!mixer || animationsRef.current.length === 0 || attack === 0) return
+
+    const attackClip = animationsRef.current[0]
+    const idleClip = animationsRef.current[3]
+
+    mixer.stopAllAction()
+    const action = mixer.clipAction(attackClip)
+    action.setLoop(THREE.LoopOnce, 1)
+    action.clampWhenFinished = true
+    action.play()
+
+    const onFinished = () => {
+      mixer.stopAllAction()
+      mixer.clipAction(idleClip).play()
+    }
+    mixer.addEventListener("finished", onFinished)
+    return () => mixer.removeEventListener("finished", onFinished)
+  }, [attack])
 
   return (
     <div

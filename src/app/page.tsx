@@ -1,10 +1,5 @@
 "use client"
 import { useRouter } from "next/navigation"
-
-// YP90U0YL
-
-import { PlayerBrawler } from "@/types/brawler";
-import BrawlerCard from "@/components/BrawlerCard"; 
 import { useState, useEffect } from "react";
 import ScrambleText from "@/components/ScrambleText"
 import ThreeScene from "@/components/ThreeScene"
@@ -17,6 +12,7 @@ export default function Home() {
   const [playerData, setPlayerData] = useState<any>(null);
   const [notFound, setNotFound] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
+  const [attackTick, setAttackTick] = useState(0)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -45,7 +41,7 @@ export default function Home() {
 
   return (
     <div className="w-full px-6 pt-16 pb-12 flex flex-col items-center text-center">
-      <ThreeScene />
+      <ThreeScene attack={attackTick} />
       <div className="max-w-3xl mx-auto mb-6">
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 mb-4">
               Improve Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500">Brawl Stars</span> Experience
@@ -77,6 +73,18 @@ export default function Home() {
             </button>
         </div>
       </div>
+      <button
+        onClick={() => setAttackTick(t => t + 1)}
+        className="fixed bottom-50 right-64 w-20 h-20 rounded-full cursor-pointer
+          bg-gradient-to-b from-red-400 to-red-600
+          border-4 border-red-800
+          shadow-[0_6px_0_#7f1d1d,0_0_24px_rgba(239,68,68,0.5)]
+          active:shadow-[0_2px_0_#7f1d1d,0_0_24px_rgba(239,68,68,0.5)]
+          active:translate-y-1
+          transition-all flex items-center justify-center
+          text-white text-3xl font-black select-none z-50"
+      >
+      </button>
       {playerData && (
     <div className="max-w-sm mx-auto mb-12 bg-white rounded-2xl p-7 text-center shadow-lg shadow-black/5 border border-black/5 animate-[slideUp_0.35s_ease-out]">
       <p className="text-xl font-bold text-gray-900 mb-1">{playerData.name}</p>
