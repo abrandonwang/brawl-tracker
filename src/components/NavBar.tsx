@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { User, BarChart2, Trophy, Shield, Layers, Menu, X } from "lucide-react"
 import Link from "next/link"
 import "./NavBar.css"
+import { useMenu } from "../context/MenuContext"
 
 const navItems = [
     { label: "My Profile", icon: User, activeOn: "/player" },
@@ -15,7 +15,7 @@ const navItems = [
 ]
 
 export default function NavBar() {
-    const [menuOpen, setMenuOpen] = useState(false)
+    const { menuOpen, setMenuOpen } = useMenu()
     const pathname = usePathname()
 
     return (

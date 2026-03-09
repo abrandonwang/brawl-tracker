@@ -1,8 +1,9 @@
 "use client"
 import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ScrambleText from "@/components/ScrambleText"
 import ThreeScene from "@/components/ThreeScene"
+import { useMenu } from "@/context/MenuContext"
 
 const exampleTags = ["YP90U0YL", "2PP8LCQG", "QLCCRG20", "9RULJP8V"]
 
@@ -13,6 +14,8 @@ export default function Home() {
   const [notFound, setNotFound] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   const [attackTick, setAttackTick] = useState(0)
+  const attackBtnRef = useRef<HTMLDivElement>(null)
+  const { menuOpen } = useMenu()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -39,9 +42,24 @@ export default function Home() {
     }
   }
 
+  useEffect(() => {
+    if (attackBtnRef.current) {
+      attackBtnRef.current.style.opacity = menuOpen ? "0" : "1"
+      attackBtnRef.current.style.pointerEvents = menuOpen ? "none" : "auto"
+    }
+  }, [menuOpen])
+
+  function handleCharacterScreen(x: number, y: number) {
+    const btn = attackBtnRef.current
+    if (!btn) return
+    btn.style.left = `${x + 160}px`
+    btn.style.top = `${y}px`
+    btn.style.opacity = "1"
+  }
+
   return (
     <div className="w-full px-6 pt-16 pb-12 flex flex-col items-center text-center">
-      <ThreeScene attack={attackTick} />
+      {!menuOpen && <ThreeScene attack={attackTick} onCharacterScreen={handleCharacterScreen} />}
       <div className="max-w-3xl mx-auto mb-6">
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 mb-4">
               Improve Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500">Brawl Stars</span> Experience
@@ -73,18 +91,26 @@ export default function Home() {
             </button>
         </div>
       </div>
-      <button
-        onClick={() => setAttackTick(t => t + 1)}
-        className="fixed bottom-50 right-64 w-20 h-20 rounded-full cursor-pointer
-          bg-gradient-to-b from-red-400 to-red-600
-          border-4 border-red-800
-          shadow-[0_6px_0_#7f1d1d,0_0_24px_rgba(239,68,68,0.5)]
-          active:shadow-[0_2px_0_#7f1d1d,0_0_24px_rgba(239,68,68,0.5)]
-          active:translate-y-1
-          transition-all flex items-center justify-center
-          text-white text-3xl font-black select-none z-50"
+      <div
+        ref={attackBtnRef}
+        style={{ opacity: 0, position: "fixed", transform: "translateY(-50%)" }}
+        className="relative w-14 h-14 z-50"
       >
-      </button>
+        <span className="absolute inset-0 rounded-full bg-red-400/50" style={{ animation: "radiate 1.8s ease-out infinite" }} />
+        <span className="absolute inset-0 rounded-full bg-red-400/35" style={{ animation: "radiate 1.8s ease-out infinite 0.6s" }} />
+        <span className="absolute inset-0 rounded-full bg-red-400/20" style={{ animation: "radiate 1.8s ease-out infinite 1.2s" }} />
+        <button
+          onClick={() => setAttackTick(t => t + 1)}
+          className="relative w-full h-full rounded-full cursor-pointer
+            bg-red-500/70 backdrop-blur-sm
+            border-2 border-red-300/60
+            shadow-[0_0_16px_rgba(239,68,68,0.5)]
+            active:scale-95
+            transition-transform flex items-center justify-center
+            text-white text-2xl font-black select-none"
+        >
+        </button>
+      </div>
       {playerData && (
         <div className="mt-6 w-full max-w-sm animate-[slideUp_0.35s_ease-out]">
           <div className="bg-white rounded-2xl border border-black/6 shadow-xl shadow-black/8 overflow-hidden">

@@ -3,7 +3,13 @@ import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 
-export default function ThreeScene({ attack }: { attack: number }) {
+export default function ThreeScene({
+  attack,
+  onCharacterScreen,
+}: {
+  attack: number
+  onCharacterScreen?: (x: number, y: number) => void
+}) {
   const mountRef = useRef<HTMLDivElement>(null)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const animationsRef = useRef<THREE.AnimationClip[]>([])
@@ -45,11 +51,20 @@ export default function ThreeScene({ attack }: { attack: number }) {
     topLight.position.set(500, 500, 500);
     scene.add(topLight);
 
+    const charWorldPos = new THREE.Vector3(0, -0.8, 0)
+
     let animFrameId: number
     const reRender3D = () => {
       animFrameId = requestAnimationFrame(reRender3D)
       renderer.render(scene, camera)
       if (mixerRef.current) mixerRef.current.update(0.02);
+
+      if (onCharacterScreen) {
+        const projected = charWorldPos.clone().project(camera)
+        const x = (projected.x + 1) / 2 * window.innerWidth
+        const y = (-projected.y + 1) / 2 * window.innerHeight
+        onCharacterScreen(x, y)
+      }
     }
     reRender3D()
 
