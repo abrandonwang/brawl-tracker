@@ -52,13 +52,13 @@ export default function Home() {
   function handleCharacterScreen(x: number, y: number) {
     const btn = attackBtnRef.current
     if (!btn) return
-    btn.style.left = `${x + 160}px`
+    btn.style.left = `${x + 120}px`
     btn.style.top = `${y}px`
     btn.style.opacity = "1"
   }
 
   return (
-    <div className="w-full px-6 pt-16 pb-12 flex flex-col items-center text-center">
+    <div className="w-full px-6 pt-30 pb-12 flex flex-col items-center text-center">
       {!menuOpen && <ThreeScene attack={attackTick} onCharacterScreen={handleCharacterScreen} />}
       <div className="max-w-3xl mx-auto mb-6">
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 mb-4">
