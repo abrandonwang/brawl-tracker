@@ -20,10 +20,19 @@ export default function NavBar() {
     const pathname = usePathname()
     const router = useRouter()
     const [savedTag, setSavedTag] = useState<string | null>(null)
+    const [savedIconId, setSavedIconId] = useState<string | null>(null)
+    const [iconError, setIconError] = useState(false)
 
     useEffect(() => {
-        const tag = localStorage.getItem("savedPlayerTag")
-        setSavedTag(tag)
+        function syncFromStorage() {
+            const iconId = localStorage.getItem("savedPlayerIconId")
+            setSavedTag(localStorage.getItem("savedPlayerTag"))
+            setSavedIconId(iconId)
+            setIconError(false)
+        }
+        syncFromStorage()
+        window.addEventListener("playerSaved", syncFromStorage)
+        return () => window.removeEventListener("playerSaved", syncFromStorage)
     }, [pathname])
 
     function handleNavClick(label: string) {
@@ -50,7 +59,9 @@ export default function NavBar() {
                 <div className="navbar-content-right">
                     {navItems.map(({ label, icon: Icon, activeOn }) => (
                         <button key={label} className={`nav-item ${pathname.startsWith(activeOn) ? "nav-item-active" : ""}`} onClick={() => handleNavClick(label)}>
-                            <Icon size={16} />
+                            {label === "My Profile" && savedIconId && !iconError
+                                ? <img src={`/api/player-icon?id=${savedIconId}`} alt="profile icon" width={20} height={20} className="rounded" onError={() => setIconError(true)} />
+                                : <Icon size={16} />}
                             <span>{label}</span>
                         </button>
                     ))}
@@ -67,7 +78,9 @@ export default function NavBar() {
                 <div className="mobile-menu">
                     {navItems.map(({ label, icon: Icon }) => (
                         <button key={label} className="mobile-nav-item" onClick={() => handleMobileNavClick(label)}>
-                            <Icon size={20} />
+                            {label === "My Profile" && savedIconId && !iconError
+                                ? <img src={`/api/player-icon?id=${savedIconId}`} alt="profile icon" width={24} height={24} className="rounded" onError={() => setIconError(true)} />
+                                : <Icon size={20} />}
                             <span>{label}</span>
                         </button>
                     ))}

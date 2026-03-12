@@ -36,6 +36,8 @@ export default function Home() {
       } else {
         setPlayerData(data);
         localStorage.setItem("savedPlayerTag", userInput.toUpperCase())
+        if (data.icon?.id) localStorage.setItem("savedPlayerIconId", String(data.icon.id))
+        window.dispatchEvent(new Event("playerSaved"))
       }
     } catch (error) {
       console.error("Error fetching player data:", error);
