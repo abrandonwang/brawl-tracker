@@ -1,8 +1,9 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { User, BarChart2, Trophy, Shield, Layers, Menu, X } from "lucide-react"
 import Link from "next/link"
+import { useState, useEffect } from "react"
 import "./NavBar.css"
 import { useMenu } from "../context/MenuContext"
 
@@ -17,6 +18,28 @@ const navItems = [
 export default function NavBar() {
     const { menuOpen, setMenuOpen } = useMenu()
     const pathname = usePathname()
+    const router = useRouter()
+    const [savedTag, setSavedTag] = useState<string | null>(null)
+
+    useEffect(() => {
+        const tag = localStorage.getItem("savedPlayerTag")
+        setSavedTag(tag)
+    }, [pathname])
+
+    function handleNavClick(label: string) {
+        if (label === "My Profile") {
+            if (savedTag) {
+                router.push(`/player/${savedTag}`)
+            } else {
+                router.push("/")
+            }
+        }
+    }
+
+    function handleMobileNavClick(label: string) {
+        setMenuOpen(false)
+        handleNavClick(label)
+    }
 
     return (
         <nav className="navbar">
@@ -26,7 +49,7 @@ export default function NavBar() {
                 {/* Desktop nav */}
                 <div className="navbar-content-right">
                     {navItems.map(({ label, icon: Icon, activeOn }) => (
-                        <button key={label} className={`nav-item ${pathname.startsWith(activeOn) ? "nav-item-active" : ""}`}>
+                        <button key={label} className={`nav-item ${pathname.startsWith(activeOn) ? "nav-item-active" : ""}`} onClick={() => handleNavClick(label)}>
                             <Icon size={16} />
                             <span>{label}</span>
                         </button>
@@ -43,7 +66,7 @@ export default function NavBar() {
             {menuOpen && (
                 <div className="mobile-menu">
                     {navItems.map(({ label, icon: Icon }) => (
-                        <button key={label} className="mobile-nav-item" onClick={() => setMenuOpen(false)}>
+                        <button key={label} className="mobile-nav-item" onClick={() => handleMobileNavClick(label)}>
                             <Icon size={20} />
                             <span>{label}</span>
                         </button>

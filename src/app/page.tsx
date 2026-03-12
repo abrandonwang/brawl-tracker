@@ -6,7 +6,6 @@ import ThreeScene from "@/components/ThreeScene"
 import { useMenu } from "@/context/MenuContext"
 
 const exampleTags = ["YP90U0YL", "2PP8LCQG", "QLCCRG20", "9RULJP8V"]
-const MAX_RECENT = 5
 
 export default function Home() {
   const router = useRouter();
@@ -15,14 +14,8 @@ export default function Home() {
   const [notFound, setNotFound] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   const [attackTick, setAttackTick] = useState(0)
-  const [recentSearches, setRecentSearches] = useState<{ tag: string; name: string }[]>([])
   const attackBtnRef = useRef<HTMLDivElement>(null)
   const { menuOpen } = useMenu()
-
-  useEffect(() => {
-    const stored = localStorage.getItem("recentSearches")
-    if (stored) setRecentSearches(JSON.parse(stored))
-  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -42,12 +35,7 @@ export default function Home() {
         setNotFound(true);
       } else {
         setPlayerData(data);
-        setRecentSearches(prev => {
-          const tag = userInput.toUpperCase()
-          const updated = [{ tag, name: data.name }, ...prev.filter(r => r.tag !== tag)].slice(0, MAX_RECENT)
-          localStorage.setItem("recentSearches", JSON.stringify(updated))
-          return updated
-        })
+        localStorage.setItem("savedPlayerTag", userInput.toUpperCase())
       }
     } catch (error) {
       console.error("Error fetching player data:", error);
@@ -104,19 +92,6 @@ export default function Home() {
             </button>
         </div>
       </div>
-      {recentSearches.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2 justify-center max-w-lg mx-auto">
-          {recentSearches.map(r => (
-            <button
-              key={r.tag}
-              onClick={() => { setUserInput(r.tag); setPlayerData(null); setNotFound(false); }}
-              className="text-xs font-bold px-3 py-1.5 rounded-full bg-gray-100 hover:bg-blue-50 hover:text-blue-600 text-gray-600 border border-gray-200 transition-colors cursor-pointer"
-            >
-              #{r.tag} · {r.name}
-            </button>
-          ))}
-        </div>
-      )}
       <div
         ref={attackBtnRef}
         style={{ opacity: 0, position: "fixed", transform: "translateY(-50%)" }}
