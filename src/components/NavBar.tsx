@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import { User, BarChart2, Trophy, Shield, Layers, Menu, X } from "lucide-react"
+import { User, BarChart2, Trophy, Shield, Layers, Info } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import "./NavBar.css"
@@ -13,6 +13,7 @@ const navItems = [
     { label: "Leaderboards", icon: Trophy, activeOn: "/leaderboards" },
     { label: "Brawlers", icon: Shield, activeOn: "/brawlers" },
     { label: "Modes", icon: Layers, activeOn: "/modes" },
+    { label: "About", icon: Info, activeOn: "/about" },
 ]
 
 export default function NavBar() {
@@ -51,41 +52,54 @@ export default function NavBar() {
     }
 
     return (
-        <nav className="navbar">
-            <div className="navbar-content">
-                <Link href="/" className="navbar-title">BrawlLens</Link>
-
-                {/* Desktop nav */}
-                <div className="navbar-content-right">
-                    {navItems.map(({ label, icon: Icon, activeOn }) => (
-                        <button key={label} className={`nav-item ${pathname.startsWith(activeOn) ? "nav-item-active" : ""}`} onClick={() => handleNavClick(label)}>
-                            {label === "My Profile" && savedIconId && !iconError
-                                ? <img src={`/api/player-icon?id=${savedIconId}`} alt="profile icon" width={20} height={20} className="rounded" onError={() => setIconError(true)} />
-                                : <Icon size={16} />}
-                            <span>{label}</span>
-                        </button>
-                    ))}
+        <header className="sticky top-0 z-50 bg-brawl-bg/80 backdrop-blur-md border-b border-white/10 hidden lg:block" data-astro-transition-persist="desktop-header-en">
+            <nav className="container-main !overflow-visible">
+                <div className="navbar-content">
+                    <Link href="/" className="navbar-title">
+                        BrawlLens
+                    </Link>
+                    <div className="navbar-content-right">
+                        {navItems.map(({ label, icon: Icon, activeOn }) => {
+                            const isActive = pathname.startsWith(activeOn)
+                            if (label === "My Profile") {
+                                return (
+                                    <div key={label} className="flex items-center">
+                                        <button
+                                            onClick={() => handleNavClick(label)}
+                                            className={`nav-item${isActive ? " nav-item-active" : ""}`}
+                                        >
+                                            {savedIconId && !iconError ? (
+                                                <img
+                                                    src={`https://cdn.brawlify.com/profile-icons/regular/${savedIconId}.png`}
+                                                    alt="Profile"
+                                                    width={22}
+                                                    height={22}
+                                                    style={{ borderRadius: "50%", objectFit: "cover" }}
+                                                    onError={() => setIconError(true)}
+                                                />
+                                            ) : (
+                                                <Icon size={20} />
+                                            )}
+                                            {label}
+                                        </button>
+                                        <div className="w-px h-6 bg-white/10 mx-2" />
+                                    </div>
+                                )
+                            }
+                            return (
+                                <Link
+                                    key={label}
+                                    href={activeOn}
+                                    className={`nav-item${isActive ? " nav-item-active" : ""}`}
+                                >
+                                    <Icon size={20} />
+                                    {label}
+                                </Link>
+                            )
+                        })}
+                    </div>
                 </div>
-
-                {/* Mobile hamburger */}
-                <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-                    {menuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
-            </div>
-
-            {/* Mobile dropdown */}
-            {menuOpen && (
-                <div className="mobile-menu">
-                    {navItems.map(({ label, icon: Icon }) => (
-                        <button key={label} className="mobile-nav-item" onClick={() => handleMobileNavClick(label)}>
-                            {label === "My Profile" && savedIconId && !iconError
-                                ? <img src={`/api/player-icon?id=${savedIconId}`} alt="profile icon" width={24} height={24} className="rounded" onError={() => setIconError(true)} />
-                                : <Icon size={20} />}
-                            <span>{label}</span>
-                        </button>
-                    ))}
-                </div>
-            )}
-        </nav>
+            </nav>
+        </header>
     )
 }

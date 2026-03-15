@@ -11,8 +11,8 @@ export default async function PlayerProfile({ params }: { params: Promise<{ tag:
         <div className="max-w-5xl mx-auto px-6 py-10">
             <div className="mb-8">
                 <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-1">Player Profile</p>
-                <h1 className="text-3xl font-extrabold text-gray-900">{playerData.name}</h1>
-                <p className="text-sm text-gray-500 mt-1">
+                <h1 className="text-3xl font-extrabold text-white">{playerData.name}</h1>
+                <p className="text-sm text-white/45 mt-1">
                     <span className="font-bold text-yellow-500">{playerData.trophies}</span> trophies &middot; #{tag}
                 </p>
             </div>

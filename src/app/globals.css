@@ -5,30 +5,18 @@ html {
 }
 
 :root {
-  --background: #f8f8fa;
-  --foreground: #1a1a2e;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-inter: var(--font-inter);
-  --bright-teal-blue: #0077b6ff;
-  --strawberry-red: #f03a47ff;
-  --shadow-grey: #272838ff;
-  --white: #ffffffff;
-  --graphite: #282b28ff;
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --color-white: #fff;
+  --spacing: .25rem;
+  --blur-md: 12px;
+  --default-font-family: var(--font-sans);
+  --color-brawl-bg: #161618;
+  --color-text-primary: #fff;
 }
 
 body {
-  background-color: var(--background);
-  background-image:
-    linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
-  background-size: 40px 40px;
-  color: var(--graphite);
+  background-color: var(--color-brawl-bg);
+  color: var(--color-text-primary);
   font-family: var(--font-inter), sans-serif;
 }
 

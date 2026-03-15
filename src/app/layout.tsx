@@ -27,9 +27,23 @@ export default function RootLayout({
         <MenuProvider>
           <NavBar/>
           {children}
-          <button className="fixed bottom-6 right-6 p-3 bg-white rounded-full shadow-lg border border-black/5 text-gray-500 hover:text-gray-800 hover:shadow-xl transition-all cursor-pointer z-50">
+          <button className="fixed bottom-6 right-6 p-3 bg-white/8 rounded-full shadow-lg border border-white/10 text-white/50 hover:text-white hover:bg-white/12 transition-all cursor-pointer z-50">
             <Bell size={20} />
           </button>
+          <footer className="border-t border-white/6 mt-8">
+            <div className="max-w-[1200px] mx-auto px-6 py-6 flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <a href="/privacy" className="text-xs text-white/30 hover:text-white/60 transition-colors">Privacy Policy</a>
+                <a href="/contact" className="text-xs text-white/30 hover:text-white/60 transition-colors">Contact</a>
+              </div>
+              <p className="text-xs text-white/20">© {new Date().getFullYear()} BrawlLens</p>
+            </div>
+            <div className="border-t border-white/4 py-4 px-6 text-center">
+              <p className="text-xs text-white/15 max-w-2xl mx-auto">
+                This content is not affiliated with, endorsed, sponsored, or specifically approved by Supercell and Supercell is not responsible for it. For more information see <a href="https://www.supercell.com/fan-content-policy/" target="_blank" rel="noopener noreferrer" className="hover:text-white/60 underline transition-colors">Supercell's Fan Content Policy</a>.
+              </p>
+            </div>
+          </footer>
         </MenuProvider>
       </body>
     </html>

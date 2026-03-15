@@ -1,150 +1,163 @@
 "use client"
 import { useRouter } from "next/navigation"
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react"
 import ScrambleText from "@/components/ScrambleText"
-import ThreeScene from "@/components/ThreeScene"
-import { useMenu } from "@/context/MenuContext"
+import { Trophy, Shield, BarChart2 } from "lucide-react"
 
 const exampleTags = ["YP90U0YL", "2PP8LCQG", "QLCCRG20", "9RULJP8V"]
 
-export default function Home() {
-  const router = useRouter();
-  const [userInput, setUserInput] = useState("");
-  const [playerData, setPlayerData] = useState<any>(null);
-  const [notFound, setNotFound] = useState(false);
-  const [placeholderIndex, setPlaceholderIndex] = useState(0)
-  const [attackTick, setAttackTick] = useState(0)
-  const attackBtnRef = useRef<HTMLDivElement>(null)
-  const { menuOpen } = useMenu()
+const features = [
+  { icon: Trophy, label: "Trophy Tracking", desc: "Follow your trophy road progression in detail" },
+  { icon: Shield, label: "Brawler Stats", desc: "Power, rank, gadgets and star powers for every brawler" },
+  { icon: BarChart2, label: "Leaderboards", desc: "Global and regional rankings across all modes" },
+]
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIndex((prevIndex) => (prevIndex + 1) % exampleTags.length)
-    }, 2500)
-    return () => clearInterval(interval)
-  }, [])
+export default function Home() {
+  const router = useRouter()
+  const [userInput, setUserInput] = useState("")
+  const [playerData, setPlayerData] = useState<any>(null)
+  const [notFound, setNotFound] = useState(false)
 
   async function handleSearch() {
-    if (!userInput.trim()) return;
-    setPlayerData(null);
-    setNotFound(false);
+    if (!userInput.trim()) return
+    setPlayerData(null)
+    setNotFound(false)
     try {
-      const response = await fetch(`/api/player?tag=${userInput}`);
-      const data = await response.json();
+      const response = await fetch(`/api/player?tag=${userInput}`)
+      const data = await response.json()
       if (data.reason) {
-        setNotFound(true);
+        setNotFound(true)
       } else {
-        setPlayerData(data);
+        setPlayerData(data)
         localStorage.setItem("savedPlayerTag", userInput.toUpperCase())
         if (data.icon?.id) localStorage.setItem("savedPlayerIconId", String(data.icon.id))
         window.dispatchEvent(new Event("playerSaved"))
       }
-    } catch (error) {
-      console.error("Error fetching player data:", error);
-      setNotFound(true);
+    } catch {
+      setNotFound(true)
     }
-  }
-
-  useEffect(() => {
-    if (attackBtnRef.current) {
-      attackBtnRef.current.style.opacity = menuOpen ? "0" : "1"
-      attackBtnRef.current.style.pointerEvents = menuOpen ? "none" : "auto"
-    }
-  }, [menuOpen])
-
-  function handleCharacterScreen(x: number, y: number) {
-    const btn = attackBtnRef.current
-    if (!btn) return
-    btn.style.left = `${x + 120}px`
-    btn.style.top = `${y}px`
-    btn.style.opacity = "1"
   }
 
   return (
-    <div className="w-full px-6 pt-30 pb-12 flex flex-col items-center text-center">
-      {!menuOpen && <ThreeScene attack={attackTick} onCharacterScreen={handleCharacterScreen} />}
-      <div className="max-w-3xl mx-auto mb-6">
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 mb-4">
-              Improve Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500">Brawl Stars</span> Experience
-          </h1>
-          <p className="text-lg text-gray-500">Track your progress. Master your picks.</p>
-      </div>
-      <div className="max-w-lg mx-auto text-center">
-        <p className="text-xs font-bold tracking-widest text-blue-500 uppercase mb-3">Player Tag</p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <div className="relative flex items-center bg-white border-2 border-gray-300 rounded-xl shadow-sm focus-within:border-blue-500 focus-within:ring-3 focus-within:ring-blue-500/15 transition-all">
-                <span className="text-lg font-bold text-blue-500 pl-4 select-none">#</span>
-                {userInput === "" && (
-                    <span className="absolute left-10 text-gray-400 font-semibold pointer-events-none">
-                        <ScrambleText texts={exampleTags} />
-                    </span>
-                )}
-                <input
-                    className="text-base font-semibold tracking-wide py-3 px-3 w-56 sm:w-60 outline-none bg-transparent"
-                    type="text"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                />
-            </div>
-            <button
-                className="w-full sm:w-auto py-3 px-7 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold tracking-wide rounded-xl shadow-md shadow-blue-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
-                onClick={handleSearch}
-            >
-                SAVE
-            </button>
-        </div>
-      </div>
-      <div
-        ref={attackBtnRef}
-        style={{ opacity: 0, position: "fixed", transform: "translateY(-50%)" }}
-        className="relative w-14 h-14 z-50"
-      >
-        <span className="absolute inset-0 rounded-full bg-red-400/50" style={{ animation: "radiate 1.8s ease-out infinite" }} />
-        <span className="absolute inset-0 rounded-full bg-red-400/35" style={{ animation: "radiate 1.8s ease-out infinite 0.6s" }} />
-        <span className="absolute inset-0 rounded-full bg-red-400/20" style={{ animation: "radiate 1.8s ease-out infinite 1.2s" }} />
-        <button
-          onClick={() => setAttackTick(t => t + 1)}
-          className="relative w-full h-full rounded-full cursor-pointer
-            bg-red-500/70 backdrop-blur-sm
-            border-2 border-red-300/60
-            shadow-[0_0_16px_rgba(239,68,68,0.5)]
-            active:scale-95
-            transition-transform flex items-center justify-center
-            text-white text-2xl font-black select-none"
-        >
-        </button>
-      </div>
-      {playerData && (
-        <div className="mt-6 w-full max-w-sm animate-[slideUp_0.35s_ease-out]">
-          <div className="bg-white rounded-2xl border border-black/6 shadow-xl shadow-black/8 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 flex items-center justify-between">
-              <div>
-                <p className="text-white font-black text-lg leading-tight">{playerData.name}</p>
-                <p className="text-blue-100 text-xs font-semibold tracking-wide mt-0.5">#{userInput.toUpperCase()}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-white font-black text-xl">{playerData.trophies.toLocaleString()}</p>
-                <p className="text-blue-100 text-xs font-semibold mt-0.5">trophies</p>
-              </div>
-            </div>
-            <div className="px-6 py-4">
-              <button
-                onClick={() => router.push(`/player/${userInput}`)}
-                className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold tracking-widest rounded-xl shadow-md shadow-blue-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
-              >
-                VIEW PROFILE →
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6 py-16">
+      <div className="w-full max-w-[1200px] flex flex-col gap-3">
+
+        {/* ── Hero ── */}
+        <div className="rounded-3xl bg-[#1c1c1f] overflow-hidden">
+          <div className="h-1 w-full bg-gradient-to-r from-blue-600 to-cyan-500" />
+          <div className="flex items-center justify-between gap-8 px-14 py-16">
+
+            {/* Left: text */}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold tracking-[0.22em] text-blue-400/55 uppercase mb-5">
+                Brawl Stars Analytics
+              </p>
+              <h1 className="text-6xl font-black tracking-tight text-white leading-[1.06] mb-5">
+                Your Brawl Stars<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                  companion.
+                </span>
+              </h1>
+              <p className="text-sm text-white/35 leading-relaxed max-w-sm mb-8">
+                Deep stats, brawler breakdowns, leaderboards, and more. Built for players who want to improve.
+              </p>
+              <button className="px-6 py-3 bg-white text-[#111113] text-sm font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all cursor-pointer">
+                Sign in
               </button>
             </div>
+
+            {/* Right: stat blocks */}
+            <div className="shrink-0 flex flex-col gap-3 w-64">
+              {[
+                { value: "100+", label: "Brawlers tracked" },
+                { value: "20", label: "Game modes covered" },
+                { value: "Free", label: "Never requires a subscription" },
+              ].map(({ value, label }) => (
+                <div key={label} className="rounded-2xl bg-[#111113] border border-white/6 px-6 py-5">
+                  <p className="text-3xl font-black text-white mb-0.5">{value}</p>
+                  <p className="text-xs text-white/30 font-medium">{label}</p>
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
-      )}
-      {notFound && (
-          <div className="text-center px-6 py-8 animate-[slideUp_0.35s_ease-out]">
-              <p className="inline-block text-sm font-semibold text-red-500 bg-red-50 px-5 py-2.5 rounded-xl border border-red-200">
-                  Player not found. Check the tag and try again.
-              </p>
+
+        {/* ── Player Tag ── */}
+        <div className="rounded-3xl bg-[#1c1c1f] px-14 py-8">
+          <p className="text-xs font-bold tracking-[0.18em] text-white/30 uppercase mb-4">
+            Find a Player
+          </p>
+          <div className="flex items-center bg-[#111113] border border-white/8 rounded-2xl focus-within:border-blue-500/50 transition-colors">
+            <span className="text-base font-black text-blue-400 pl-5 select-none">#</span>
+            <div className="relative flex-1">
+              {userInput === "" && (
+                <span className="absolute inset-0 flex items-center text-white/20 text-sm font-medium pointer-events-none px-3">
+                  <ScrambleText texts={exampleTags} />
+                </span>
+              )}
+              <input
+                className="w-full py-4 px-3 text-sm font-semibold text-white outline-none bg-transparent"
+                type="text"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              className="m-1.5 px-6 py-2.5 bg-blue-500 hover:bg-blue-400 active:scale-95 text-white text-xs font-bold tracking-widest rounded-xl transition-all cursor-pointer shrink-0"
+            >
+              SAVE
+            </button>
           </div>
-      )}
+
+          {playerData && (
+            <div className="mt-3 animate-[slideUp_0.3s_ease-out]">
+              <div className="rounded-2xl bg-[#111113] border border-white/8 overflow-hidden">
+                <div className="px-5 py-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-bold text-base leading-tight">{playerData.name}</p>
+                    <p className="text-white/30 text-xs font-medium mt-0.5">#{userInput.toUpperCase()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-black text-xl">{playerData.trophies.toLocaleString()}</p>
+                    <p className="text-white/30 text-xs font-medium mt-0.5">trophies</p>
+                  </div>
+                </div>
+                <div className="px-5 pb-4">
+                  <button
+                    onClick={() => router.push(`/player/${userInput}`)}
+                    className="w-full py-2.5 bg-blue-500 hover:bg-blue-400 active:scale-[0.98] text-white text-xs font-bold tracking-widest rounded-xl transition-all cursor-pointer"
+                  >
+                    VIEW PROFILE →
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {notFound && (
+            <div className="mt-3 animate-[slideUp_0.3s_ease-out]">
+              <p className="text-center text-sm text-red-400/70 bg-red-500/8 px-5 py-3 rounded-2xl border border-red-500/12">
+                Player not found. Check the tag and try again.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Feature cards ── */}
+        <div className="grid grid-cols-3 gap-3">
+          {features.map(({ icon: Icon, label, desc }) => (
+            <div key={label} className="rounded-3xl bg-[#1c1c1f] px-8 py-7">
+              <Icon size={18} className="text-blue-400/70 mb-3" />
+              <p className="text-sm font-bold text-white/70 mb-1">{label}</p>
+              <p className="text-xs text-white/25 leading-snug">{desc}</p>
+            </div>
+          ))}
+        </div>
+
+      </div>
     </div>
-  );
+  )
 }
