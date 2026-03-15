@@ -1,8 +1,15 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 
 export default function About() {
-    const [active, setActive] = useState("about")
+    const searchParams = useSearchParams()
+    const [active, setActive] = useState(searchParams.get("section") ?? "about")
+
+    useEffect(() => {
+        const section = searchParams.get("section")
+        if (section) setActive(section)
+    }, [searchParams])
 
     return (
         <div className="max-w-[1200px] mx-auto px-6 py-10 lg:grid lg:grid-cols-[220px_1fr] lg:gap-16">
