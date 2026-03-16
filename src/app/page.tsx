@@ -77,23 +77,23 @@ export default function Home() {
         <section className="max-w-4xl mx-auto text-center space-y-12 mb-56">
           <h1 className="text-7xl md:text-[130px] font-black tracking-[-0.08em] leading-[0.75] text-zinc-950">
             The library <br />
-            <span className="text-zinc-300">for the best.</span>
+            <span className="text-zinc-500">for the best.</span>
           </h1>
 
-          <p className="text-2xl text-zinc-400 font-medium max-w-xl mx-auto leading-relaxed">
+          <p className="text-2xl text-zinc-500 font-medium max-w-xl mx-auto leading-relaxed">
             A specialized analytics suite for competitive Brawl Stars players.
           </p>
 
           <div className="relative max-w-xl mx-auto pt-10">
             <div className="flex items-center p-2 bg-white border border-zinc-200 rounded-[32px] shadow-xl shadow-zinc-200/50 focus-within:border-black transition-all">
-              <span className="pl-6 pr-2 text-zinc-200 font-black text-2xl">#</span>
+              <span className="pl-6 pr-2 text-zinc-400 font-black text-2xl">#</span>
               <input
                 type="text"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="PLAYER TAG"
-                className="flex-1 py-5 text-xl font-black outline-none placeholder:text-zinc-100 uppercase tracking-tighter"
+                className="flex-1 py-5 text-xl font-black outline-none placeholder:text-zinc-300 uppercase tracking-tighter"
               />
               <button
                 onClick={handleSearch}
@@ -115,7 +115,7 @@ export default function Home() {
                 <Swords size={28} />
               </div>
               <h3 className="text-4xl font-black tracking-tight">Brawlers</h3>
-              <p className="text-zinc-400 text-lg font-medium leading-relaxed">
+              <p className="text-zinc-500 text-lg font-medium leading-relaxed">
                 Browse every brawler — stats, star powers, gadgets, and hyper charges all in one place.
               </p>
             </div>
@@ -129,7 +129,7 @@ export default function Home() {
                 <TrendingUp size={28} className="text-white" />
               </div>
               <h3 className="text-4xl font-black tracking-tight">Meta</h3>
-              <p className="text-zinc-400 text-lg font-medium leading-relaxed">
+              <p className="text-zinc-300 text-lg font-medium leading-relaxed">
                 See which brawlers are dominating right now. Win rates and pick rates updated from live matches.
               </p>
             </div>
@@ -143,7 +143,7 @@ export default function Home() {
                 <Trophy size={28} />
               </div>
               <h3 className="text-4xl font-black tracking-tight">Leaderboards</h3>
-              <p className="text-zinc-400 text-lg font-medium leading-relaxed">
+              <p className="text-zinc-500 text-lg font-medium leading-relaxed">
                 Track the top players globally and by brawler. See who's pushing trophies at the highest level.
               </p>
             </div>
