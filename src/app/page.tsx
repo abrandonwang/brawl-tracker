@@ -1,163 +1,157 @@
 "use client"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import ScrambleText from "@/components/ScrambleText"
-import { Trophy, Shield, BarChart2 } from "lucide-react"
+import { Swords, TrendingUp, Trophy } from "lucide-react"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
 
-const exampleTags = ["YP90U0YL", "2PP8LCQG", "QLCCRG20", "9RULJP8V"]
-
-const features = [
-  { icon: Trophy, label: "Trophy Tracking", desc: "Follow your trophy road progression in detail" },
-  { icon: Shield, label: "Brawler Stats", desc: "Power, rank, gadgets and star powers for every brawler" },
-  { icon: BarChart2, label: "Leaderboards", desc: "Global and regional rankings across all modes" },
-]
+gsap.registerPlugin(ScrollTrigger)
 
 export default function Home() {
   const router = useRouter()
   const [userInput, setUserInput] = useState("")
-  const [playerData, setPlayerData] = useState<any>(null)
-  const [notFound, setNotFound] = useState(false)
+  const cardsRef = useRef<HTMLDivElement>(null)
 
-  async function handleSearch() {
-    if (!userInput.trim()) return
-    setPlayerData(null)
-    setNotFound(false)
-    try {
-      const response = await fetch(`/api/player?tag=${userInput}`)
-      const data = await response.json()
-      if (data.reason) {
-        setNotFound(true)
-      } else {
-        setPlayerData(data)
-        localStorage.setItem("savedPlayerTag", userInput.toUpperCase())
-        if (data.icon?.id) localStorage.setItem("savedPlayerIconId", String(data.icon.id))
-        window.dispatchEvent(new Event("playerSaved"))
-      }
-    } catch {
-      setNotFound(true)
+  useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`)
+      document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`)
     }
+    window.addEventListener('mousemove', handleMove)
+    return () => window.removeEventListener('mousemove', handleMove)
+  }, [])
+
+  useEffect(() => {
+    const cards = cardsRef.current?.querySelectorAll<HTMLElement>(".feature-card")
+    if (!cards) return
+
+    cards.forEach((card, i) => {
+      gsap.fromTo(card,
+        { y: 80, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: "power3.out",
+          delay: i * 0.15,
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          }
+        }
+      )
+    })
+
+    const footer = document.querySelector("footer")
+    if (footer) {
+      gsap.fromTo(footer,
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: footer,
+            start: "top 90%",
+            toggleActions: "play none none none",
+          }
+        }
+      )
+    }
+
+    return () => ScrollTrigger.getAll().forEach(t => t.kill())
+  }, [])
+
+  const handleSearch = () => {
+    const tag = userInput.trim().toUpperCase()
+    if (tag) router.push(`/player/${tag}`)
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 sm:px-6 py-10">
-      <div className="w-full max-w-[1200px] flex flex-col gap-3">
+    <main className="relative pt-64 pb-60 spotlight-bg">
+      <div className="max-w-[1440px] mx-auto px-10">
 
-        {/* ── Hero ── */}
-        <div className="rounded-3xl bg-[#1c1c1f] overflow-hidden">
-          <div className="h-1 w-full bg-gradient-to-r from-blue-600 to-cyan-500" />
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 px-6 py-10 sm:px-10 lg:px-14 lg:py-16">
+        {/* HERO SECTION */}
+        <section className="max-w-4xl mx-auto text-center space-y-12 mb-56">
+          <h1 className="text-7xl md:text-[130px] font-black tracking-[-0.08em] leading-[0.75] text-zinc-950">
+            The library <br />
+            <span className="text-zinc-300">for the best.</span>
+          </h1>
 
-            {/* Left: text */}
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold tracking-[0.22em] text-blue-400/55 uppercase mb-4">
-                Brawl Stars Analytics
-              </p>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.06] mb-4">
-                Your Brawl Stars<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                  companion.
-                </span>
-              </h1>
-              <p className="text-sm text-white/35 leading-relaxed max-w-sm mb-7">
-                Deep stats, brawler breakdowns, leaderboards, and more. Built for players who want to improve.
-              </p>
-              <button className="px-6 py-3 bg-white text-[#111113] text-sm font-bold rounded-2xl hover:bg-white/90 active:scale-95 transition-all cursor-pointer">
-                Sign in
-              </button>
-            </div>
-
-            {/* Right: stat blocks — hidden on mobile */}
-            <div className="hidden lg:flex shrink-0 flex-col gap-3 w-64">
-              {[
-                { value: "100+", label: "Brawlers tracked" },
-                { value: "20", label: "Game modes covered" },
-                { value: "Free", label: "Never requires a subscription" },
-              ].map(({ value, label }) => (
-                <div key={label} className="rounded-2xl bg-[#111113] border border-white/6 px-6 py-5">
-                  <p className="text-3xl font-black text-white mb-0.5">{value}</p>
-                  <p className="text-xs text-white/30 font-medium">{label}</p>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </div>
-
-        {/* ── Player Tag ── */}
-        <div className="rounded-3xl bg-[#1c1c1f] px-6 py-7 sm:px-10 lg:px-14">
-          <p className="text-xs font-bold tracking-[0.18em] text-white/30 uppercase mb-4">
-            Find a Player
+          <p className="text-2xl text-zinc-400 font-medium max-w-xl mx-auto leading-relaxed">
+            A specialized analytics suite for competitive Brawl Stars players.
           </p>
-          <div className="flex items-center bg-[#111113] border border-white/8 rounded-2xl focus-within:border-blue-500/50 transition-colors">
-            <span className="text-base font-black text-blue-400 pl-5 select-none">#</span>
-            <div className="relative flex-1">
-              {userInput === "" && (
-                <span className="absolute inset-0 flex items-center text-white/20 text-sm font-medium pointer-events-none px-3">
-                  <ScrambleText texts={exampleTags} />
-                </span>
-              )}
+
+          <div className="relative max-w-xl mx-auto pt-10">
+            <div className="flex items-center p-2 bg-white border border-zinc-200 rounded-[32px] shadow-xl shadow-zinc-200/50 focus-within:border-black transition-all">
+              <span className="pl-6 pr-2 text-zinc-200 font-black text-2xl">#</span>
               <input
-                className="w-full py-4 px-3 text-sm font-semibold text-white outline-none bg-transparent"
                 type="text"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                placeholder="PLAYER TAG"
+                className="flex-1 py-5 text-xl font-black outline-none placeholder:text-zinc-100 uppercase tracking-tighter"
               />
+              <button
+                onClick={handleSearch}
+                className="bg-zinc-950 text-white px-10 py-5 rounded-[26px] font-black text-xs uppercase tracking-widest hover:bg-black transition-all"
+              >
+                Search
+              </button>
             </div>
-            <button
-              onClick={handleSearch}
-              className="m-1.5 px-4 sm:px-6 py-2.5 bg-blue-500 hover:bg-blue-400 active:scale-95 text-white text-xs font-bold tracking-widest rounded-xl transition-all cursor-pointer shrink-0"
-            >
-              SAVE
-            </button>
           </div>
+        </section>
 
-          {playerData && (
-            <div className="mt-3 animate-[slideUp_0.3s_ease-out]">
-              <div className="rounded-2xl bg-[#111113] border border-white/8 overflow-hidden">
-                <div className="px-5 py-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-white font-bold text-base leading-tight">{playerData.name}</p>
-                    <p className="text-white/30 text-xs font-medium mt-0.5">#{userInput.toUpperCase()}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white font-black text-xl">{playerData.trophies.toLocaleString()}</p>
-                    <p className="text-white/30 text-xs font-medium mt-0.5">trophies</p>
-                  </div>
-                </div>
-                <div className="px-5 pb-4">
-                  <button
-                    onClick={() => router.push(`/player/${userInput}`)}
-                    className="w-full py-2.5 bg-blue-500 hover:bg-blue-400 active:scale-[0.98] text-white text-xs font-bold tracking-widest rounded-xl transition-all cursor-pointer"
-                  >
-                    VIEW PROFILE →
-                  </button>
-                </div>
+        {/* FEATURE CARDS */}
+        <section ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+
+          {/* Brawlers */}
+          <div className="feature-card m-card bg-white p-14 min-h-[550px] flex flex-col justify-between group opacity-0">
+            <div className="space-y-8">
+              <div className="w-14 h-14 bg-zinc-50 rounded-2xl flex items-center justify-center border border-zinc-100">
+                <Swords size={28} />
               </div>
-            </div>
-          )}
-
-          {notFound && (
-            <div className="mt-3 animate-[slideUp_0.3s_ease-out]">
-              <p className="text-center text-sm text-red-400/70 bg-red-500/8 px-5 py-3 rounded-2xl border border-red-500/12">
-                Player not found. Check the tag and try again.
+              <h3 className="text-4xl font-black tracking-tight">Brawlers</h3>
+              <p className="text-zinc-400 text-lg font-medium leading-relaxed">
+                Browse every brawler — stats, star powers, gadgets, and hyper charges all in one place.
               </p>
             </div>
-          )}
-        </div>
+            <div className="text-zinc-100 font-black text-[120px] leading-none select-none group-hover:text-zinc-950 transition-colors duration-700">01</div>
+          </div>
 
-        {/* ── Feature cards ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {features.map(({ icon: Icon, label, desc }) => (
-            <div key={label} className="rounded-3xl bg-[#1c1c1f] px-8 py-7">
-              <Icon size={18} className="text-blue-400/70 mb-3" />
-              <p className="text-sm font-bold text-white/70 mb-1">{label}</p>
-              <p className="text-xs text-white/25 leading-snug">{desc}</p>
+          {/* Meta */}
+          <div className="feature-card m-card bg-zinc-950 text-white p-14 min-h-[550px] flex flex-col justify-between group opacity-0">
+            <div className="space-y-8">
+              <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center">
+                <TrendingUp size={28} className="text-white" />
+              </div>
+              <h3 className="text-4xl font-black tracking-tight">Meta</h3>
+              <p className="text-zinc-400 text-lg font-medium leading-relaxed">
+                See which brawlers are dominating right now. Win rates and pick rates updated from live matches.
+              </p>
             </div>
-          ))}
-        </div>
+            <div className="text-white/10 font-black text-[120px] leading-none select-none group-hover:text-white/20 transition-colors duration-700">02</div>
+          </div>
 
+          {/* Leaderboards */}
+          <div className="feature-card m-card bg-white p-14 min-h-[550px] flex flex-col justify-between group opacity-0">
+            <div className="space-y-8">
+              <div className="w-14 h-14 bg-zinc-50 rounded-2xl flex items-center justify-center border border-zinc-100">
+                <Trophy size={28} />
+              </div>
+              <h3 className="text-4xl font-black tracking-tight">Leaderboards</h3>
+              <p className="text-zinc-400 text-lg font-medium leading-relaxed">
+                Track the top players globally and by brawler. See who's pushing trophies at the highest level.
+              </p>
+            </div>
+            <div className="text-zinc-100 font-black text-[120px] leading-none select-none group-hover:text-zinc-950 transition-colors duration-700">03</div>
+          </div>
+
+        </section>
       </div>
-    </div>
+    </main>
   )
 }

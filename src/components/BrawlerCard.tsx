@@ -1,25 +1,72 @@
-import { PlayerBrawler } from "@/types/brawler";
+import { PlayerBrawler } from "@/types/brawler"
 
-function BrawlerCard ({ name, power, rank, trophies, prestigeLevel, gadgets, starPowers, hyperCharges, gears }: PlayerBrawler) {
+function rankColor(rank: number) {
+    if (rank >= 30) return "text-yellow-400 bg-yellow-400/10"
+    if (rank >= 25) return "text-orange-400 bg-orange-400/10"
+    if (rank >= 20) return "text-purple-400 bg-purple-400/10"
+    if (rank >= 15) return "text-cyan-400 bg-cyan-400/10"
+    if (rank >= 10) return "text-yellow-500 bg-yellow-500/10"
+    if (rank >= 5)  return "text-zinc-400 bg-white/5"
+    return "text-amber-600 bg-amber-500/10"
+}
+
+export default function BrawlerCard({ id, name, power, rank, trophies, highestTrophies, gadgets, starPowers, hyperCharges, gears, prestigeLevel }: PlayerBrawler) {
     return (
-        <div className="bg-white/5 rounded-2xl p-4 border border-white/8 shadow-sm hover:bg-white/8 transition-colors">
-            <div className="flex items-center justify-between mb-2">
-                <h2 className="font-bold text-sm text-white truncate">{name}</h2>
-                <span className="text-xs font-bold text-yellow-500">{trophies}</span>
+        <div className="bg-zinc-900 border border-white/5 rounded-3xl overflow-hidden hover:-translate-y-1 hover:border-white/10 hover:shadow-xl hover:shadow-black/40 transition-all duration-300">
+
+            {/* Image area */}
+            <div className="relative bg-zinc-800/50 h-36 flex items-end justify-center overflow-hidden">
+                <img
+                    src={`https://cdn.brawlify.com/brawlers/borderless/${id}.png`}
+                    alt={name}
+                    className="h-32 w-32 object-contain drop-shadow-lg"
+                />
+                <span className={`absolute top-3 right-3 text-[10px] font-black px-2 py-0.5 rounded-full ${rankColor(rank)}`}>
+                    R{rank}
+                </span>
+                {prestigeLevel > 0 && (
+                    <span className="absolute top-3 left-3 text-[10px] font-black px-2 py-0.5 rounded-full text-purple-400 bg-purple-400/10">
+                        P{prestigeLevel}
+                    </span>
+                )}
             </div>
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <span className="text-xs bg-blue-500/15 text-blue-400 font-bold px-2 py-0.5 rounded-full">Pwr {power}</span>
-                <span className="text-xs bg-white/10 text-white/55 font-bold px-2 py-0.5 rounded-full">Rank {rank}</span>
-                {prestigeLevel > 0 && <span className="text-xs bg-purple-500/15 text-purple-400 font-bold px-2 py-0.5 rounded-full">P{prestigeLevel}</span>}
-            </div>
-            <div className="space-y-1 text-xs text-white/40">
-                {gadgets.length > 0 && <p>Gadgets: {gadgets.map(g => g.name).join(', ')}</p>}
-                {starPowers.length > 0 && <p>Star Powers: {starPowers.map(s => s.name).join(', ')}</p>}
-                {hyperCharges.length > 0 && <p>Hyper: {hyperCharges.map(h => h.name).join(', ')}</p>}
-                {gears.length > 0 && <p>Gears: {gears.map(g => g.name).join(', ')}</p>}
+
+            {/* Info area */}
+            <div className="p-4 space-y-3">
+                <div>
+                    <h3 className="font-black text-sm tracking-tight truncate text-white">{name}</h3>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-sm font-black text-white">{trophies.toLocaleString()}</span>
+                        <span className="text-[10px] text-white/20 font-bold">/ {highestTrophies.toLocaleString()}</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-black bg-white text-black px-2 py-0.5 rounded-full">
+                        PWR {power}
+                    </span>
+                    {gadgets.length > 0 && (
+                        <span className="text-[10px] font-bold text-white/40 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                            {gadgets.length}G
+                        </span>
+                    )}
+                    {starPowers.length > 0 && (
+                        <span className="text-[10px] font-bold text-white/40 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                            {starPowers.length}SP
+                        </span>
+                    )}
+                    {hyperCharges.length > 0 && (
+                        <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full border border-yellow-400/10">
+                            HC
+                        </span>
+                    )}
+                    {gears.length > 0 && (
+                        <span className="text-[10px] font-bold text-white/40 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                            {gears.length}GR
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     )
 }
-
-export default BrawlerCard;

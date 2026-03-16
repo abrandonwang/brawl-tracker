@@ -1,155 +1,109 @@
 "use client"
-
-import { usePathname, useRouter } from "next/navigation"
-import { User, BarChart2, Trophy, Shield, Layers, Info, Menu, X } from "lucide-react"
+import { useState } from "react"
+import { Search, Command, X, User } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
-import "./NavBar.css"
-import logo from "../app/icon.svg"
+import { usePathname } from "next/navigation"
 
 const navItems = [
-    { label: "My Profile", icon: User, activeOn: "/player" },
-    { label: "Stats", icon: BarChart2, activeOn: "/stats" },
-    { label: "Leaderboards", icon: Trophy, activeOn: "/leaderboards" },
-    { label: "Brawlers", icon: Shield, activeOn: "/brawlers" },
-    { label: "Modes", icon: Layers, activeOn: "/modes" },
-    { label: "About", icon: Info, activeOn: "/about" },
+    { label: "Brawlers", href: "/brawlers" },
+    { label: "Meta", href: "/meta" },
+    { label: "Leaderboards", href: "/leaderboards" },
 ]
 
 export default function NavBar() {
     const pathname = usePathname()
-    const router = useRouter()
-    const [mobileOpen, setMobileOpen] = useState(false)
-    const [savedTag, setSavedTag] = useState<string | null>(null)
-    const [savedIconId, setSavedIconId] = useState<string | null>(null)
-    const [iconError, setIconError] = useState(false)
-
-    useEffect(() => {
-        setMobileOpen(false)
-    }, [pathname])
-
-    useEffect(() => {
-        function syncFromStorage() {
-            const iconId = localStorage.getItem("savedPlayerIconId")
-            setSavedTag(localStorage.getItem("savedPlayerTag"))
-            setSavedIconId(iconId)
-            setIconError(false)
-        }
-        syncFromStorage()
-        window.addEventListener("playerSaved", syncFromStorage)
-        return () => window.removeEventListener("playerSaved", syncFromStorage)
-    }, [pathname])
-
-    function handleNavClick(label: string) {
-        if (label === "My Profile") {
-            router.push(savedTag ? `/player/${savedTag}` : "/")
-        }
-        setMobileOpen(false)
-    }
+    const [isOpen, setIsOpen] = useState(false)
+    
+    const isDark = pathname !== "/" && pathname !== "/about"
 
     return (
         <>
-            {/* Desktop */}
-            <header className="sticky top-0 z-50 bg-brawl-bg/80 backdrop-blur-md border-b border-white/10 hidden lg:block">
-                <nav className="container-main !overflow-visible">
-                    <div className="navbar-content">
-                        <Link href="/" className="navbar-brand">
-                            <img className="navbar-logo" src={logo.src} width={30} height={30} alt="BrawlLens" />
-                            <div className="navbar-title">BrawlLens</div>
+            <div className="fixed top-6 left-0 right-0 z-[100] flex justify-center px-6">
+                <header className={`max-w-[1200px] w-full h-[72px] rounded-full flex items-center justify-between px-8 ${isDark ? "nav-pill-dark" : "nav-pill"}`}>
+                    
+                    {/* LEFT: LOGO */}
+                    <Link href="/" className="flex items-center gap-3 group shrink-0">
+                        <div className="relative w-7 h-7 flex items-center justify-center">
+                            <div className={`absolute inset-0 border-[2.5px] rounded-full transition-colors ${isDark ? "border-white" : "border-black"}`} />
+                            <div className={`w-1 h-1 rounded-full transition-colors ${isDark ? "bg-white" : "bg-black"}`} />
+                        </div>
+                        <span className={`text-[11px] font-black uppercase tracking-[0.3em] transition-colors hidden xl:block ${isDark ? "text-white" : "text-black"}`}>
+                            BrawlLens
+                        </span>
+                    </Link>
+
+                    {/* CENTER: NAV */}
+                    <nav className="hidden md:flex items-center gap-8">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
+                                    pathname.startsWith(item.href)
+                                        ? (isDark ? "text-white" : "text-black")
+                                        : (isDark ? "text-white/30 hover:text-white/60" : "text-zinc-400 hover:text-zinc-600")
+                                }`}
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
+                    </nav>
+
+                    {/* RIGHT: THE SEARCH BAR & PROFILE */}
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setIsOpen(true)}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-2xl transition-all group ${
+                                isDark ? "bg-white/5 hover:bg-white/10" : "bg-zinc-100 hover:bg-zinc-200"
+                            }`}
+                        >
+                            <Search size={14} className={isDark ? "text-white/40" : "text-zinc-400"} />
+                            <span className={`text-[10px] font-bold uppercase tracking-widest pr-8 hidden sm:block ${isDark ? "text-white/20" : "text-zinc-300"}`}>
+                                Quick Search
+                            </span>
+                            <div className="flex items-center gap-1 opacity-20 group-hover:opacity-40 transition-opacity hidden sm:flex">
+                                <Command size={10} className={isDark ? "text-white" : "text-black"} /> 
+                                <span className={`text-[9px] font-black ${isDark ? "text-white" : "text-black"}`}>K</span>
+                            </div>
+                        </button>
+
+                        <div className={`h-8 w-[1px] hidden sm:block ${isDark ? "bg-white/10" : "bg-zinc-100"}`} />
+
+                        <Link 
+                            href="/player/me" 
+                            className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${
+                                isDark ? "bg-white text-black" : "bg-black text-white hover:scale-105 active:scale-95 shadow-lg shadow-black/5"
+                            }`}
+                        >
+                            <User size={16} />
                         </Link>
-                        <div className="navbar-content-right">
-                            {navItems.map(({ label, icon: Icon, activeOn }) => {
-                                const isActive = pathname.startsWith(activeOn)
-                                if (label === "My Profile") {
-                                    return (
-                                        <div key={label} className="flex items-center">
-                                            <button
-                                                onClick={() => handleNavClick(label)}
-                                                className={`nav-item${isActive ? " nav-item-active" : ""}`}
-                                            >
-                                                {savedIconId && !iconError ? (
-                                                    <img
-                                                        src={`https://cdn.brawlify.com/profile-icons/regular/${savedIconId}.png`}
-                                                        alt="Profile"
-                                                        width={22}
-                                                        height={22}
-                                                        style={{ borderRadius: "50%", objectFit: "cover" }}
-                                                        onError={() => setIconError(true)}
-                                                    />
-                                                ) : (
-                                                    <Icon size={20} />
-                                                )}
-                                                {label}
-                                            </button>
-                                            <div className="w-px h-6 bg-white/10 mx-2" />
-                                        </div>
-                                    )
-                                }
-                                return (
-                                    <Link
-                                        key={label}
-                                        href={activeOn}
-                                        className={`nav-item${isActive ? " nav-item-active" : ""}`}
-                                    >
-                                        <Icon size={20} />
-                                        {label}
-                                    </Link>
-                                )
-                            })}
+                    </div>
+                </header>
+            </div>
+
+            {/* SEARCH OVERLAY */}
+            {isOpen && (
+                <div className="fixed inset-0 z-[200] bg-zinc-950/20 backdrop-blur-xl flex items-start justify-center pt-[15vh] px-6">
+                    <div className="w-full max-w-xl bg-white rounded-[40px] shadow-2xl border border-zinc-100 overflow-hidden animate-fade-in">
+                        <div className="p-8 flex items-center gap-6 border-b border-zinc-50">
+                            <Search className="text-zinc-300" size={24} />
+                            <input 
+                                autoFocus 
+                                placeholder="ENTER PLAYER TAG..." 
+                                className="flex-1 bg-transparent border-none outline-none text-xl font-black tracking-tight placeholder:text-zinc-100 uppercase" 
+                            />
+                            <button onClick={() => setIsOpen(false)}><X size={24} className="text-zinc-300 hover:text-black"/></button>
+                        </div>
+                        <div className="p-10 flex flex-col items-center gap-4">
+                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-200">Suggested Tags</span>
+                            <div className="flex gap-2">
+                                <button className="px-4 py-2 bg-zinc-50 rounded-xl text-[10px] font-black text-zinc-400 hover:text-black transition-colors">#GRG0L2G</button>
+                                <button className="px-4 py-2 bg-zinc-50 rounded-xl text-[10px] font-black text-zinc-400 hover:text-black transition-colors">#2Y09VLLY</button>
+                            </div>
                         </div>
                     </div>
-                </nav>
-            </header>
-
-            {/* Mobile */}
-            <header className="sticky top-0 z-50 lg:hidden">
-                <div className="bg-[#161618]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-5 h-14">
-                    <Link href="/" className="navbar-brand">
-                        <img src={logo.src} width={26} height={26} alt="BrawlLens" />
-                        <div className="navbar-title">BrawlLens</div>
-                    </Link>
-                    <button
-                        onClick={() => setMobileOpen(o => !o)}
-                        className="p-2 text-white/50 hover:text-white transition-colors"
-                    >
-                        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-                    </button>
                 </div>
-
-                {mobileOpen && (
-                    <div className="absolute top-full left-0 right-0 bg-[#161618] border-b border-white/10 px-4 py-3 flex flex-col gap-1">
-                        {navItems.map(({ label, icon: Icon, activeOn }) => {
-                            const isActive = pathname.startsWith(activeOn)
-                            if (label === "My Profile") {
-                                return (
-                                    <button
-                                        key={label}
-                                        onClick={() => handleNavClick(label)}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive ? "text-blue-400 bg-blue-500/10" : "text-white/50 hover:text-white hover:bg-white/5"}`}
-                                    >
-                                        {savedIconId && !iconError ? (
-                                            <img src={`https://cdn.brawlify.com/profile-icons/regular/${savedIconId}.png`} alt="Profile" width={18} height={18} style={{ borderRadius: "50%" }} onError={() => setIconError(true)} />
-                                        ) : (
-                                            <Icon size={18} />
-                                        )}
-                                        {label}
-                                    </button>
-                                )
-                            }
-                            return (
-                                <Link
-                                    key={label}
-                                    href={activeOn}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive ? "text-blue-400 bg-blue-500/10" : "text-white/50 hover:text-white hover:bg-white/5"}`}
-                                >
-                                    <Icon size={18} />
-                                    {label}
-                                </Link>
-                            )
-                        })}
-                    </div>
-                )}
-            </header>
+            )}
         </>
     )
 }
