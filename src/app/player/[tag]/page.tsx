@@ -12,7 +12,7 @@ export default async function PlayerProfile({ params }: { params: Promise<{ tag:
     return (
         <div className="bg-black min-h-screen -mt-[80px] pt-[80px]">
             <main className="pt-32 pb-32">
-                <div className="max-w-[1440px] mx-auto px-10">
+                <div className="max-w-[1200px] mx-auto px-10">
 
                     {/* HERO */}
                     <section className="mb-20">

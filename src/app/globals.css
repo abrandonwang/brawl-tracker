@@ -4,8 +4,13 @@
   --brand: #FFD400;
 }
 
+html {
+  overscroll-behavior: none;
+}
+
 body {
   background-color: #fcfdfe;
   color: #09090b;
   font-family: var(--font-inter), sans-serif;
+  overscroll-behavior: none;
 }

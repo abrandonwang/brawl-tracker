@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <main className="flex-1 bg-[#fcfdfe] flex flex-col">
       <div className="flex-1 flex items-center justify-center px-10 pt-24 pb-6">
-        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+        <div className="max-w-[1200px] w-full grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
 
           {/* LEFT: HEADLINE */}
           <div className="lg:col-span-6">

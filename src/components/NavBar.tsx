@@ -73,7 +73,7 @@ export default function NavBar() {
                                     >
                                         {item.label}
                                         <span className={`absolute -bottom-1 left-0 h-[3px] rounded-full transition-all duration-300 ${
-                                            isDark ? "bg-white" : "bg-[#9df9d9]" // Mint underline for active
+                                            isDark ? "bg-white" : "bg-[#FFD400]" // Mint underline for active
                                         } ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
                                     </Link>
                                 )
@@ -97,7 +97,7 @@ export default function NavBar() {
                 <div className="fixed inset-0 z-[200] bg-white/40 backdrop-blur-xl flex items-start justify-center pt-[15vh] px-6">
                     <div className="w-full max-w-xl bg-white rounded-[40px] shadow-2xl border border-white overflow-hidden animate-fade-in">
                         <div className="p-8 flex items-center gap-6 border-b border-zinc-50">
-                            <Search className="text-[#9df9d9]" size={24} />
+                            <Search className="text-[#FFD400]" size={24} />
                             <input 
                                 autoFocus 
                                 placeholder="ENTER PLAYER TAG..." 
@@ -108,8 +108,8 @@ export default function NavBar() {
                         <div className="p-10 flex flex-col items-center gap-4 bg-zinc-50/50">
                             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-300">Suggested Tags</span>
                             <div className="flex gap-2">
-                                <button className="px-4 py-2 bg-white border border-zinc-100 rounded-xl text-[10px] font-black text-zinc-400 hover:border-[#9df9d9] hover:text-zinc-900 transition-all">#GRG0L2G</button>
-                                <button className="px-4 py-2 bg-white border border-zinc-100 rounded-xl text-[10px] font-black text-zinc-400 hover:border-[#9df9d9] hover:text-zinc-900 transition-all">#2Y09VLLY</button>
+                                <button className="px-4 py-2 bg-white border border-zinc-100 rounded-xl text-[10px] font-black text-zinc-400 hover:border-[#FFD400] hover:text-zinc-900 transition-all">#GRG0L2G</button>
+                                <button className="px-4 py-2 bg-white border border-zinc-100 rounded-xl text-[10px] font-black text-zinc-400 hover:border-[#FFD400] hover:text-zinc-900 transition-all">#2Y09VLLY</button>
                             </div>
                         </div>
                     </div>
