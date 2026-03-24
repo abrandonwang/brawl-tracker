@@ -68,12 +68,12 @@ export default function NavBar() {
                                         className={`relative text-sm font-bold tracking-tight transition-colors duration-300 group ${
                                             isActive
                                                 ? (isDark ? "text-white" : "text-zinc-900")
-                                                : (isDark ? "text-white/30 hover:text-white/60" : "text-zinc-400 hover:text-zinc-900")
+                                                : (isDark ? "text-white/30 hover:text-white/60" : "text-black-400")
                                         }`}
                                     >
                                         {item.label}
                                         <span className={`absolute -bottom-1 left-0 h-[3px] rounded-full transition-all duration-300 ${
-                                            isDark ? "bg-white" : "bg-[#FFD400]" // Mint underline for active
+                                            isDark ? "bg-white" : "bg-[black]" // Mint underline for active
                                         } ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
                                     </Link>
                                 )
