@@ -95,12 +95,12 @@ export default function BrawlerCatalog({ brawlers }: { brawlers: Brawler[] }) {
                             </div>
                             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-2">
                                 {group.map(brawler => (
-                                    <div key={brawler.id} className="group cursor-pointer bg-zinc-900 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all duration-300">
+                                    <div key={brawler.id} className="group cursor-pointer bg-zinc-900 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all duration-100">
                                         <div className="aspect-square p-1.5">
                                             <img
                                                 src={brawler.imageUrl2}
                                                 alt={brawler.name}
-                                                className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                                                className="w-full h-full object-contain"
                                             />
                                         </div>
                                         <div className="px-2 pb-2 flex items-center gap-1.5">
