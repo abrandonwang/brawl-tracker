@@ -117,7 +117,7 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
             </span>
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-600">
               Live · Brawl Stars API
             </span>
           </motion.div>
@@ -141,7 +141,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-zinc-500 text-base sm:text-lg font-medium leading-relaxed max-w-sm mx-auto mb-10"
+            className="text-zinc-600 text-base sm:text-lg font-medium leading-relaxed max-w-sm mx-auto mb-10"
           >
             Real-time stats and brawler analysis for competitive Brawl Stars players.
           </motion.p>
@@ -169,7 +169,7 @@ export default function Home() {
                 Search
               </button>
             </div>
-            <p className="mt-4 text-[10px] font-bold text-zinc-400 uppercase tracking-[0.3em] text-center">
+            <p className="mt-4 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.3em] text-center">
               Tap your profile icon in-game to find your tag
             </p>
           </motion.div>
@@ -192,8 +192,8 @@ export default function Home() {
           <div className="marquee-inner flex items-center gap-10 shrink-0">
             {[...marqueeItems, ...marqueeItems, ...marqueeItems, ...marqueeItems].map((item, i) => (
               <div key={i} className="flex items-center gap-3 shrink-0">
-                <div className="w-1 h-1 rounded-full bg-zinc-300" />
-                <span className="text-[11px] font-black uppercase tracking-[0.25em] text-zinc-400 whitespace-nowrap">
+                <div className="w-1 h-1 rounded-full bg-zinc-400 shrink-0" />
+                <span className="text-[11px] font-black uppercase tracking-[0.25em] text-zinc-500 whitespace-nowrap">
                   {item}
                 </span>
               </div>
