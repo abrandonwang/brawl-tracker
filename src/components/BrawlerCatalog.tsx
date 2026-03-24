@@ -15,6 +15,7 @@ const RARITY_ORDER = [
 ]
 
 export default function BrawlerCatalog({ brawlers }: { brawlers: Brawler[] }) {
+    console.log(brawlers[0])
     const [activeRarity, setActiveRarity] = useState<string | null>(null)
     const [search, setSearch] = useState("")
 

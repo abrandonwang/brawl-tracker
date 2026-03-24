@@ -109,7 +109,7 @@ export default function Home() {
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="Enter player tag"
-                className="flex-1 min-w-0 bg-transparent py-1.5 sm:py-2 text-base sm:text-xl font-bold outline-none text-zinc-950 placeholder:text-zinc-300 tracking-tight"
+                className="flex-1 min-w-0 bg-transparent py-1.5 sm:py-2 text-base sm:text-xl font-bold outline-none text-zinc-950 placeholder:text-zinc-300 placeholder:font-normal placeholder:tracking-normal tracking-tight"
               />
               <button
                 onClick={handleSearch}
