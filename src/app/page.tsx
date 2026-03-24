@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { motion, useMotionValue, useSpring } from "framer-motion"
+import { motion } from "framer-motion"
 import FluidBackground from "@/components/FluidBackground"
 
 const marqueeItems = [
@@ -35,42 +35,10 @@ export default function Home() {
   const [userInput, setUserInput] = useState("")
   const router = useRouter()
 
-  // 1. Mouse Position
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-
-  // 2. Create a "Trail" of springs with increasing heaviness
-  // Each spring is slightly slower than the one before it
-  const springConfig1 = { damping: 25, stiffness: 120 }
-  const springConfig2 = { damping: 30, stiffness: 80 }
-  const springConfig3 = { damping: 40, stiffness: 50 }
-  const springConfig4 = { damping: 50, stiffness: 30 }
-
-  const trail1X = useSpring(mouseX, springConfig1)
-  const trail1Y = useSpring(mouseY, springConfig1)
-  
-  const trail2X = useSpring(mouseX, springConfig2)
-  const trail2Y = useSpring(mouseY, springConfig2)
-  
-  const trail3X = useSpring(mouseX, springConfig3)
-  const trail3Y = useSpring(mouseY, springConfig3)
-
-  const trail4X = useSpring(mouseX, springConfig4)
-  const trail4Y = useSpring(mouseY, springConfig4)
-
   useEffect(() => {
     document.body.classList.add("home-page")
     return () => document.body.classList.remove("home-page")
   }, [])
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX)
-      mouseY.set(e.clientY)
-    }
-    window.addEventListener("mousemove", handleMouseMove)
-    return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [mouseX, mouseY])
 
   function handleSearch() {
     const tag = userInput.trim().replace(/^#/, "")
@@ -82,25 +50,6 @@ export default function Home() {
 
       <FluidBackground />
 
-      {/* Cursor trail blobs */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <motion.div
-          style={{ x: trail4X, y: trail4Y, translateX: "-50%", translateY: "-50%" }}
-          className="absolute w-[600px] h-[600px] rounded-full bg-white/40 blur-[100px]"
-        />
-        <motion.div
-          style={{ x: trail3X, y: trail3Y, translateX: "-50%", translateY: "-50%" }}
-          className="absolute w-[500px] h-[500px] rounded-full bg-white/60 blur-[75px]"
-        />
-        <motion.div
-          style={{ x: trail2X, y: trail2Y, translateX: "-50%", translateY: "-50%" }}
-          className="absolute w-[380px] h-[380px] rounded-full bg-white/80 blur-[50px]"
-        />
-        <motion.div
-          style={{ x: trail1X, y: trail1Y, translateX: "-50%", translateY: "-50%" }}
-          className="absolute w-[260px] h-[260px] rounded-full bg-white blur-[30px]"
-        />
-      </div>
 
       {/* CONTENT LAYER */}
       <section className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-32 pb-20">
