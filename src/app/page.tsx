@@ -4,15 +4,11 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import FluidBackground from "@/components/FluidBackground"
 
-const marqueeItems = [
-  "Real-time Stats",
-  "80+ Brawlers",
-  "No Account Required",
-  "Live Rankings",
-  "Free Forever",
-  "Brawl Stars API",
-  "All Rarities",
-  "Trophy Tracking",
+// Brawlify CDN portrait IDs
+const BRAWLER_IDS = [
+  16000000, 16000001, 16000002, 16000003, 16000006, 16000008,
+  16000009, 16000011, 16000012, 16000013, 16000014, 16000015,
+  16000016, 16000017, 16000018, 16000019, 16000020, 16000021,
 ]
 
 const stagger = {
@@ -125,31 +121,6 @@ export default function Home() {
 
         </div>
       </section>
-
-      {/* Marquee strip */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.9, duration: 0.6 }}
-        className="relative z-10 border-t border-white/50 overflow-hidden py-4 bg-white/20 backdrop-blur-lg"
-      >
-        {/* Fade edges */}
-        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white/60 to-transparent z-10" />
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white/60 to-transparent z-10" />
-
-        <div className="marquee-outer flex">
-          <div className="marquee-inner flex items-center gap-10 shrink-0">
-            {[...marqueeItems, ...marqueeItems].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 shrink-0">
-                <div className="w-1 h-1 rounded-full bg-zinc-400 shrink-0" />
-                <span className="text-[11px] font-black uppercase tracking-[0.25em] text-zinc-500 whitespace-nowrap">
-                  {item}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
 
     </main>
   )
