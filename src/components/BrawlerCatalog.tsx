@@ -38,12 +38,12 @@ export default function BrawlerCatalog({ brawlers }: { brawlers: Brawler[] }) {
     return (
         <div>
             <div className="flex items-center gap-3 w-full mb-10 overflow-x-auto pb-1">
-                <div className="flex items-center gap-2.5 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 shrink-0">
+                <div className="flex items-center gap-2.5 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 shrink-0 transition-colors focus-within:bg-zinc-800 focus-within:border-white/25">
                     <Search size={13} className="text-white/30" />
                     <input
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Search brawlers..."
+                        placeholder="Search brawlers"
                         className="bg-transparent text-sm text-white/80 outline-none placeholder:text-white/25 w-36"
                     />
                 </div>
