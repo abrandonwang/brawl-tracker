@@ -21,7 +21,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ map, totalBattles: 0, brawlers: [] });
     }
 
-    // Get total battles for this map
     const { count } = await supabase
       .from("battles")
       .select("*", { count: "exact", head: true })
@@ -35,11 +34,9 @@ export async function GET(request: Request) {
       winRate: Number(row.win_rate),
     }));
 
-    return NextResponse.json({
-      map,
-      totalBattles: count || 0,
-      brawlers,
-    });
+    const res = NextResponse.json({ map, totalBattles: count || 0, brawlers });
+    res.headers.set("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+    return res;
   }
 
   // ── All modes and maps with battle counts ───────────────
@@ -50,7 +47,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ modes: [] });
   }
 
-  // Group by mode
   const modeMap = new Map<
     string,
     { totalBattles: number; maps: { name: string; battles: number }[] }
@@ -74,5 +70,7 @@ export async function GET(request: Request) {
     }))
     .sort((a, b) => b.totalBattles - a.totalBattles);
 
-  return NextResponse.json({ modes });
+  const res = NextResponse.json({ modes });
+  res.headers.set("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+  return res;
 }

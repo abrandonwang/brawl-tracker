@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
+// ─── Types ──────────────────────────────────────────────────────
 interface MapInfo {
   name: string;
   battles: number;
@@ -28,42 +28,60 @@ interface MapMeta {
   brawlers: BrawlerStat[];
 }
 
-const MODE_LABELS: Record<string, string> = {
-  brawlBall: "Brawl Ball",
-  gemGrab: "Gem Grab",
-  knockout: "Knockout",
-  bounty: "Bounty",
-  heist: "Heist",
-  hotZone: "Hot Zone",
-  wipeout: "Wipeout",
-  duels: "Duels",
-  soloShowdown: "Showdown",
-  duoShowdown: "Duo SD",
-  payload: "Payload",
+// ─── Mode display config ────────────────────────────────────────
+const MODE_CONFIG: Record<string, { label: string; color: string }> = {
+  brawlBall: { label: "Brawl Ball", color: "#8CA0EB" },
+  gemGrab: { label: "Gem Grab", color: "#9B59B6" },
+  knockout: { label: "Knockout", color: "#F9C74F" },
+  bounty: { label: "Bounty", color: "#2ECC71" },
+  heist: { label: "Heist", color: "#E74C3C" },
+  hotZone: { label: "Hot Zone", color: "#E67E22" },
+  wipeout: { label: "Wipeout", color: "#1ABC9C" },
+  duels: { label: "Duels", color: "#E84393" },
+  siege: { label: "Siege", color: "#636E72" },
+  soloShowdown: { label: "Showdown", color: "#2ECC71" },
+  duoShowdown: { label: "Duo SD", color: "#00B894" },
+  trioShowdown: { label: "Trio SD", color: "#55E6C1" },
+  payload: { label: "Payload", color: "#6C5CE7" },
+  basketBrawl: { label: "Basket Brawl", color: "#E17055" },
+  volleyBrawl: { label: "Volley Brawl", color: "#FDCB6E" },
+  botDrop: { label: "Bot Drop", color: "#636E72" },
+  hunters: { label: "Hunters", color: "#D63031" },
+  trophyEscape: { label: "Trophy Escape", color: "#00CEC9" },
+  paintBrawl: { label: "Paint Brawl", color: "#A29BFE" },
+  wipeout5V5: { label: "5v5 Wipeout", color: "#1ABC9C" },
 };
 
 function getModeName(mode: string): string {
-  return MODE_LABELS[mode] || mode.charAt(0).toUpperCase() + mode.slice(1);
+  return MODE_CONFIG[mode]?.label || mode.charAt(0).toUpperCase() + mode.slice(1).replace(/([A-Z])/g, " $1");
 }
 
-function getTierInfo(winRate: number): { label: string; color: string; bg: string } {
-  if (winRate >= 58) return { label: "S", color: "text-red-400", bg: "bg-red-400/10 border-red-400/20" };
-  if (winRate >= 54) return { label: "A", color: "text-orange-400", bg: "bg-orange-400/10 border-orange-400/20" };
-  if (winRate >= 50) return { label: "B", color: "text-yellow-400", bg: "bg-yellow-400/10 border-yellow-400/20" };
-  if (winRate >= 46) return { label: "C", color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" };
-  return { label: "D", color: "text-zinc-400", bg: "bg-zinc-400/10 border-zinc-400/20" };
+function getModeColor(mode: string): string {
+  return MODE_CONFIG[mode]?.color || "#ffffff";
+}
+
+// ─── Tier badges ────────────────────────────────────────────────
+function getTierInfo(winRate: number) {
+  if (winRate >= 58) return { label: "S", color: "#F87171", bg: "rgba(248,113,113,0.08)", border: "rgba(248,113,113,0.2)" };
+  if (winRate >= 54) return { label: "A", color: "#FB923C", bg: "rgba(251,146,60,0.08)", border: "rgba(251,146,60,0.2)" };
+  if (winRate >= 50) return { label: "B", color: "#FACC15", bg: "rgba(250,204,21,0.08)", border: "rgba(250,204,21,0.2)" };
+  if (winRate >= 46) return { label: "C", color: "#60A5FA", bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.2)" };
+  return { label: "D", color: "#71717A", bg: "rgba(113,113,122,0.08)", border: "rgba(113,113,122,0.2)" };
+}
+
+function getBarWidth(winRate: number): number {
+  return Math.max(0, Math.min(100, ((winRate - 30) / 40) * 100));
 }
 
 function getBrawlerImage(brawlerId: number): string {
   return `https://cdn.brawlify.com/brawlers/borderless/${brawlerId}.png`;
 }
 
-function getMapImage(mapName: string): string {
-  // This won't always match perfectly — we'd need event_id for exact mapping.
-  // For now, we'll skip map images and just show names.
-  return "";
+function formatBrawlerName(name: string): string {
+  return name.split(" ").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 }
 
+// ─── Component ──────────────────────────────────────────────────
 export default function MetaDashboard() {
   const [modes, setModes] = useState<ModeInfo[]>([]);
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
@@ -71,38 +89,83 @@ export default function MetaDashboard() {
   const [mapMeta, setMapMeta] = useState<MapMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMap, setLoadingMap] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [minPicks, setMinPicks] = useState(10);
 
-  // Fetch modes + maps on mount
+  // Map images from Brawlify
+  const [mapImageLookup, setMapImageLookup] = useState<Map<string, string>>(new Map());
+
+  // Current rotation map names
+  const [rotationMapNames, setRotationMapNames] = useState<Set<string>>(new Set());
+
+  // Fetch everything on mount
   useEffect(() => {
-    fetch("/api/meta")
-      .then((r) => r.json())
-      .then((data) => {
-        setModes(data.modes || []);
-        if (data.modes?.length > 0) {
-          setSelectedMode(data.modes[0].mode);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    Promise.all([
+      fetch("/api/meta").then((r) => r.json()),
+      fetch("/api/rotation").then((r) => r.json()).catch(() => []),
+      fetch("https://api.brawlify.com/v1/maps").then((r) => r.json()).catch(() => ({ list: [] })),
+    ]).then(([metaData, rotationData, mapsData]) => {
+      // Meta modes
+      const m = metaData.modes || [];
+      setModes(m);
+      if (m.length > 0) setSelectedMode(m[0].mode);
+
+      // Rotation from official API: array of { event: { mode, map } }
+      const activeNames = new Set<string>();
+      for (const slot of rotationData || []) {
+        if (slot.event?.map) activeNames.add(slot.event.map);
+      }
+      setRotationMapNames(activeNames);
+
+      // Map images from Brawlify
+      const lookup = new Map<string, string>();
+      for (const map of mapsData.list || []) {
+        lookup.set(map.name, map.imageUrl);
+      }
+      setMapImageLookup(lookup);
+
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
-  // Fetch brawler stats when a map is selected
-  useEffect(() => {
-    if (!selectedMap) {
-      setMapMeta(null);
-      return;
-    }
+  // Click a map
+  const handleMapClick = useCallback((mapName: string) => {
+    setSelectedMap(mapName);
+    setMapMeta(null);
     setLoadingMap(true);
-    fetch(`/api/meta?map=${encodeURIComponent(selectedMap)}`)
+    setSearchQuery("");
+
+    fetch(`/api/meta?map=${encodeURIComponent(mapName)}`)
       .then((r) => r.json())
       .then((data) => {
         setMapMeta(data);
         setLoadingMap(false);
       })
       .catch(() => setLoadingMap(false));
-  }, [selectedMap]);
+  }, []);
 
-  const currentMode = modes.find((m) => m.mode === selectedMode);
+  // Sort maps: rotation first, then by battle count
+  const sortedMaps = useMemo(() => {
+    const currentMode = modes.find((m) => m.mode === selectedMode);
+    if (!currentMode) return [];
+
+    return [...currentMode.maps].sort((a, b) => {
+      const aLive = rotationMapNames.has(a.name) ? 1 : 0;
+      const bLive = rotationMapNames.has(b.name) ? 1 : 0;
+      if (bLive !== aLive) return bLive - aLive;
+      return b.battles - a.battles;
+    });
+  }, [modes, selectedMode, rotationMapNames]);
+
+  // Filter brawlers
+  const filteredBrawlers = useMemo(() => {
+    if (!mapMeta) return [];
+    return mapMeta.brawlers.filter((b) => {
+      if (b.picks < minPicks) return false;
+      if (searchQuery && !formatBrawlerName(b.name).toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+  }, [mapMeta, searchQuery, minPicks]);
 
   if (loading) {
     return (
@@ -115,163 +178,196 @@ export default function MetaDashboard() {
   if (modes.length === 0) {
     return (
       <div className="text-center py-32">
-        <p className="text-white/40 text-lg">
-          No battle data yet — the collector is still running.
-        </p>
-        <p className="text-white/20 text-sm mt-2">
-          Check back once the script finishes.
-        </p>
+        <p className="text-white/40 text-lg font-medium">No battle data yet</p>
+        <p className="text-white/20 text-sm mt-2">The collector is still running. Check back soon.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* ── Mode Tabs ──────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2">
-        {modes.map((m) => (
-          <button
-            key={m.mode}
-            onClick={() => {
-              setSelectedMode(m.mode);
-              setSelectedMap(null);
-            }}
-            className={`
-              px-4 py-2 rounded-full text-sm font-bold tracking-tight transition-all
-              ${
-                selectedMode === m.mode
-                  ? "bg-white text-black"
-                  : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60"
-              }
-            `}
-          >
-            {getModeName(m.mode)}
-            <span className="ml-2 text-xs opacity-50">
-              {(m.totalBattles / 1000).toFixed(1)}k
-            </span>
-          </button>
-        ))}
+        {modes.map((m) => {
+          const isActive = selectedMode === m.mode;
+          const color = getModeColor(m.mode);
+          return (
+            <button
+              key={m.mode}
+              onClick={() => {
+                setSelectedMode(m.mode);
+                setSelectedMap(null);
+                setMapMeta(null);
+              }}
+              style={isActive ? { backgroundColor: color, color: "#000" } : undefined}
+              className={`px-4 py-2 rounded-full text-sm font-bold tracking-tight transition-all duration-200
+                ${isActive ? "shadow-lg" : "bg-white/[0.04] text-white/40 hover:bg-white/[0.08] hover:text-white/60 border border-white/[0.06]"}`}
+            >
+              {getModeName(m.mode)}
+              <span className={`ml-2 text-xs ${isActive ? "opacity-60" : "opacity-30"}`}>
+                {m.totalBattles >= 1000 ? `${(m.totalBattles / 1000).toFixed(1)}k` : m.totalBattles}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {currentMode && !selectedMap && (
+      {/* ── Map Grid ───────────────────────────────────────── */}
+      {!selectedMap && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {currentMode.maps.map((map) => (
-            <button
-              key={map.name}
-              onClick={() => setSelectedMap(map.name)}
-              className="group relative bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 text-left hover:bg-white/[0.06] hover:border-white/10 transition-all"
-            >
-              <h3 className="text-white font-bold text-sm truncate group-hover:text-white/90">
-                {map.name}
-              </h3>
-              <p className="text-white/20 text-xs mt-1">
-                {map.battles.toLocaleString()} battles
-              </p>
-            </button>
-          ))}
+          {sortedMaps.map((map) => {
+            const imageUrl = mapImageLookup.get(map.name);
+            const isLive = rotationMapNames.has(map.name);
+            return (
+              <button
+                key={map.name}
+                onClick={() => handleMapClick(map.name)}
+                className="group relative rounded-2xl overflow-hidden text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:shadow-black/20"
+              >
+                <div className="aspect-[4/3] relative bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={map.name}
+                      className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-300"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl opacity-20" style={{ backgroundColor: getModeColor(selectedMode || "") }} />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+                  {isLive && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                      <span className="text-green-400 text-[9px] font-bold uppercase tracking-wider">Live</span>
+                    </div>
+                  )}
+
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-bold text-sm truncate leading-tight">{map.name}</h3>
+                    <p className="text-white/30 text-xs mt-0.5 font-medium">
+                      {map.battles.toLocaleString()} battles
+                    </p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 
+      {/* ── Map Detail View ────────────────────────────────── */}
       {selectedMap && (
-        <button
-          onClick={() => setSelectedMap(null)}
-          className="flex items-center gap-2 text-white/40 hover:text-white/60 transition-colors text-sm font-bold"
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5" />
-            <path d="m12 19-7-7 7-7" />
-          </svg>
-          Back to {getModeName(selectedMode || "")} maps
-        </button>
-      )}
-
-      {selectedMap && loadingMap && (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-        </div>
-      )}
-
-      {selectedMap && mapMeta && !loadingMap && (
         <div>
-          <div className="flex items-baseline justify-between mb-6">
+          <div className="flex items-start gap-4 mb-6">
+            {mapImageLookup.get(selectedMap) && (
+              <div className="w-20 h-15 rounded-xl overflow-hidden shrink-0 border border-white/10">
+                <img src={mapImageLookup.get(selectedMap)!} alt={selectedMap} className="w-full h-full object-cover" />
+              </div>
+            )}
             <div>
-              <h2 className="text-2xl font-bold text-white">{mapMeta.map}</h2>
-              <p className="text-white/30 text-sm mt-1">
-                {mapMeta.totalBattles.toLocaleString()} battles sampled
-              </p>
+              <button
+                onClick={() => { setSelectedMap(null); setMapMeta(null); }}
+                className="flex items-center gap-1.5 text-white/30 hover:text-white/50 transition-colors text-xs font-bold uppercase tracking-wider mb-2"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5" /><path d="m12 19-7-7 7-7" />
+                </svg>
+                {getModeName(selectedMode || "")}
+              </button>
+              <h2 className="text-2xl font-bold text-white leading-tight">{selectedMap}</h2>
+              {mapMeta && (
+                <p className="text-white/20 text-sm mt-1">{mapMeta.totalBattles.toLocaleString()} battles sampled</p>
+              )}
             </div>
           </div>
 
-          {mapMeta.brawlers.length === 0 ? (
-            <p className="text-white/30 text-center py-16">
-              Not enough data for this map yet.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              <div className="grid grid-cols-[48px_1fr_80px_80px_100px] gap-3 px-4 py-2 text-xs font-bold text-white/20 uppercase tracking-wider">
-                <span></span>
-                <span>Brawler</span>
-                <span className="text-right">Win Rate</span>
-                <span className="text-right">Picks</span>
-                <span className="text-right">Tier</span>
+          {loadingMap && (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            </div>
+          )}
+
+          {mapMeta && !loadingMap && (
+            <div>
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <div className="relative flex-1">
+                  <svg
+                    width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20"
+                  >
+                    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.34-4.34" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search brawler..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-xs text-white/30">
+                  <span className="whitespace-nowrap font-medium">Min picks:</span>
+                  <select
+                    value={minPicks}
+                    onChange={(e) => setMinPicks(Number(e.target.value))}
+                    className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                  >
+                    <option value={5}>5+</option>
+                    <option value={10}>10+</option>
+                    <option value={25}>25+</option>
+                    <option value={50}>50+</option>
+                    <option value={100}>100+</option>
+                  </select>
+                </div>
               </div>
 
-              {mapMeta.brawlers
-                .filter((b) => b.picks >= 10) // Only show brawlers with enough data
-                .map((brawler, i) => {
-                  const tier = getTierInfo(brawler.winRate);
-                  return (
-                    <div
-                      key={brawler.brawlerId}
-                      className="grid grid-cols-[48px_1fr_80px_80px_100px] gap-3 items-center px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] transition-colors"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-white/5 overflow-hidden flex items-center justify-center">
-                        <img
-                          src={getBrawlerImage(brawler.brawlerId)}
-                          alt={brawler.name}
-                          width={36}
-                          height={36}
-                          className="object-contain"
-                          loading="lazy"
-                        />
-                      </div>
+              <p className="text-white/15 text-xs mb-4">Showing {filteredBrawlers.length} brawlers</p>
 
-                      <span className="text-white font-semibold text-sm truncate">
-                        {brawler.name.charAt(0) +
-                          brawler.name.slice(1).toLowerCase()}
-                      </span>
+              {filteredBrawlers.length === 0 ? (
+                <p className="text-white/30 text-center py-16">No brawlers match your filters.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="grid grid-cols-[44px_1fr_100px_70px_36px] sm:grid-cols-[44px_1fr_120px_80px_80px_36px] gap-3 px-3 py-2 text-[10px] font-bold text-white/15 uppercase tracking-widest">
+                    <span></span>
+                    <span>Brawler</span>
+                    <span>Win Rate</span>
+                    <span className="text-right hidden sm:block">Wins</span>
+                    <span className="text-right">Picks</span>
+                    <span></span>
+                  </div>
 
-                      <span
-                        className={`text-right font-bold text-sm ${tier.color}`}
+                  {filteredBrawlers.map((brawler) => {
+                    const tier = getTierInfo(brawler.winRate);
+                    return (
+                      <div
+                        key={brawler.brawlerId}
+                        className="grid grid-cols-[44px_1fr_100px_70px_36px] sm:grid-cols-[44px_1fr_120px_80px_80px_36px] gap-3 items-center px-3 py-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-150"
                       >
-                        {brawler.winRate.toFixed(1)}%
-                      </span>
-
-                      <span className="text-right text-white/30 text-sm">
-                        {brawler.picks.toLocaleString()}
-                      </span>
-
-                      <div className="flex justify-end">
-                        <span
-                          className={`
-                            inline-flex items-center justify-center w-8 h-8 rounded-lg border text-xs font-black
-                            ${tier.bg} ${tier.color}
-                          `}
-                        >
-                          {tier.label}
-                        </span>
+                        <div className="w-9 h-9 rounded-lg bg-white/[0.04] overflow-hidden flex items-center justify-center">
+                          <img src={getBrawlerImage(brawler.brawlerId)} alt={brawler.name} width={32} height={32} className="object-contain" loading="lazy" />
+                        </div>
+                        <span className="text-white font-semibold text-sm truncate">{formatBrawlerName(brawler.name)}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: tier.color }}>{brawler.winRate.toFixed(1)}%</span>
+                          <div className="flex-1 h-1.5 rounded-full bg-white/[0.04] overflow-hidden hidden sm:block">
+                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${getBarWidth(brawler.winRate)}%`, backgroundColor: tier.color, opacity: 0.5 }} />
+                          </div>
+                        </div>
+                        <span className="text-right text-white/20 text-sm tabular-nums hidden sm:block">{brawler.wins.toLocaleString()}</span>
+                        <span className="text-right text-white/20 text-sm tabular-nums">{brawler.picks.toLocaleString()}</span>
+                        <div className="flex justify-center">
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[10px] font-black" style={{ color: tier.color, backgroundColor: tier.bg, borderWidth: 1, borderColor: tier.border }}>{tier.label}</span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
