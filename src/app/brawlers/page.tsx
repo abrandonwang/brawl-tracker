@@ -8,7 +8,7 @@ export default async function Brawlers() {
     const brawlers: Brawler[] = data.list ?? []
     const newest = [...brawlers].sort((a, b) => b.id - a.id)[0]
     return (
-        <div className="bg-black flex-1 flex">
+        <div className="bg-black flex-1 flex flex-col lg:flex-row">
             <BrawlerPageClient brawlers={brawlers} newest={newest?.name ?? ""} />
         </div>
     )

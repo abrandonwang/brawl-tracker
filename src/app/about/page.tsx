@@ -38,7 +38,7 @@ const features = [
 
 export default function About() {
     return (
-        <div className="bg-black flex-1 flex">
+        <div className="bg-black flex-1 flex flex-col lg:flex-row">
             <Suspense>
                 <AboutPage />
             </Suspense>
@@ -53,7 +53,7 @@ function AboutPage() {
 
     return (
         <>
-            <aside className="w-64 shrink-0 sticky top-0 h-[calc(100dvh-72px)] border-r border-white/10 py-10 px-5 flex flex-col gap-1.5 overflow-y-auto">
+            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-0 h-auto lg:h-[calc(100dvh-72px)] border-b lg:border-b-0 lg:border-r border-white/10 py-5 lg:py-10 px-5 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto">
                 {sections.map(({ id, label }) => (
                     <button
                         key={id}
