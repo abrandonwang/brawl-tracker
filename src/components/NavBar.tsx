@@ -19,7 +19,7 @@ export default function NavBar() {
 
     return (
         <>
-            <div className={`w-full z-10 transition-all duration-300 ${isDark ? "bg-black border-b border-white/10" : "border-b border-zinc-100"}`}>
+            <div className={`w-full z-10 transition-all duration-300 ${isDark ? "bg-black border-b border-white/10" : "bg-white/70 backdrop-blur-xl border-b border-zinc-200/60"}`}>
                 <header className="h-[72px] flex items-center justify-between px-8">
                     
                     {/* LEFT: LOGO + SEARCH */}
