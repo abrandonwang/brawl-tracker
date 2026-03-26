@@ -11,15 +11,14 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const BASE_URL = "https://api.brawlstars.com/v1";
 
-// ─── Rate Limiting Config ───────────────────────────────────────
-const TARGET_RPS = 10; // 10 requests per second
-const MIN_DELAY_MS = 1000 / TARGET_RPS; // 100ms between requests
+// ─── Tuning ─────────────────────────────────────────────────────
+const CONCURRENCY = 8; // Parallel API requests
+const DB_BATCH_SIZE = 50; // Write to DB every N tags
 const MAX_RETRIES = 3;
-const BACKOFF_BASE_MS = 2000; // Base for exponential backoff on 429
+const BACKOFF_BASE_MS = 2000;
 
-// ─── Stats Tracking ─────────────────────────────────────────────
+// ─── Stats ──────────────────────────────────────────────────────
 let totalRequests = 0;
-let totalRetries = 0;
 let total429s = 0;
 let totalBattlesSaved = 0;
 let totalPlayersSaved = 0;
@@ -30,109 +29,104 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// ─── API Fetch with Retry + Backoff ─────────────────────────────
+// ─── Rate Limiter (token bucket) ────────────────────────────────
+class RateLimiter {
+  private tokens: number;
+  private maxTokens: number;
+  private refillRate: number;
+  private lastRefill: number;
+
+  constructor(requestsPerSecond: number) {
+    this.maxTokens = requestsPerSecond;
+    this.tokens = requestsPerSecond;
+    this.refillRate = requestsPerSecond / 1000;
+    this.lastRefill = Date.now();
+  }
+
+  async acquire() {
+    while (true) {
+      const now = Date.now();
+      const elapsed = now - this.lastRefill;
+      this.tokens = Math.min(this.maxTokens, this.tokens + elapsed * this.refillRate);
+      this.lastRefill = now;
+
+      if (this.tokens >= 1) {
+        this.tokens -= 1;
+        return;
+      }
+
+      const waitMs = Math.ceil((1 - this.tokens) / this.refillRate);
+      await sleep(waitMs);
+    }
+  }
+}
+
+const rateLimiter = new RateLimiter(10);
+
+// ─── API Fetch with Retry ───────────────────────────────────────
 async function apiFetch(endpoint: string): Promise<any> {
   const url = `${BASE_URL}${endpoint}`;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    await rateLimiter.acquire();
     totalRequests++;
+
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${BRAWL_API_KEY}` },
     });
 
-    if (res.ok) {
-      return res.json();
-    }
+    if (res.ok) return res.json();
 
     if (res.status === 429) {
       total429s++;
-      const retryAfter = res.headers.get("retry-after");
-      const waitMs = retryAfter
-        ? parseInt(retryAfter) * 1000
-        : BACKOFF_BASE_MS * Math.pow(2, attempt);
-      console.log(
-        `    429 rate limited. Waiting ${waitMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`
-      );
-      totalRetries++;
+      const waitMs = BACKOFF_BASE_MS * Math.pow(2, attempt);
+      console.log(`    429 hit. Backing off ${waitMs}ms...`);
       await sleep(waitMs);
       continue;
     }
 
-    if (res.status === 404) {
-      // Player not found / account deleted
-      return null;
-    }
+    if (res.status === 404) return null;
 
     if (res.status === 503) {
-      // Maintenance
-      const waitMs = BACKOFF_BASE_MS * Math.pow(2, attempt);
-      console.log(
-        `    503 maintenance. Waiting ${waitMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`
-      );
-      totalRetries++;
-      await sleep(waitMs);
+      await sleep(BACKOFF_BASE_MS * Math.pow(2, attempt));
       continue;
     }
 
-    // Other error — don't retry
     return null;
   }
-
-  return null; // All retries exhausted
+  return null;
 }
 
-// ─── Generate Unique Battle ID ──────────────────────────────────
+// ─── Battle Parsing ─────────────────────────────────────────────
 function generateBattleId(battleTime: string, players: string[]): string {
   const sorted = [...players].sort().join(",");
-  const raw = `${battleTime}:${sorted}`;
-  return createHash("sha256").update(raw).digest("hex").slice(0, 32);
+  return createHash("sha256").update(`${battleTime}:${sorted}`).digest("hex").slice(0, 32);
 }
 
-// ─── Process One Battle ─────────────────────────────────────────
-function parseBattle(
-  entry: any,
-  fetchedPlayerTag: string
-): {
-  battle: any;
-  players: any[];
-} | null {
+function parseBattle(entry: any, fetchedTag: string): { battle: any; players: any[] } | null {
   const { battleTime, event, battle } = entry;
-
-  // Skip if no teams (Showdown, special modes)
   if (!battle?.teams || battle.teams.length !== 2) return null;
-
-  // Skip friendly/challenge matches — only want ranked/trophy matches
   if (!battle.result) return null;
 
-  // Collect all player tags
-  const allPlayerTags: string[] = [];
+  const allTags: string[] = [];
   for (const team of battle.teams) {
-    for (const player of team) {
-      allPlayerTags.push(player.tag);
-    }
+    for (const p of team) allTags.push(p.tag);
   }
 
-  const battleId = generateBattleId(battleTime, allPlayerTags);
+  const battleId = generateBattleId(battleTime, allTags);
 
-  // Figure out which team the fetched player is on
-  let fetchedTeamIndex = -1;
-  for (let t = 0; t < battle.teams.length; t++) {
-    for (const player of battle.teams[t]) {
-      if (player.tag === fetchedPlayerTag) {
-        fetchedTeamIndex = t;
-        break;
-      }
+  let fetchedTeam = -1;
+  for (let t = 0; t < 2; t++) {
+    if (battle.teams[t].some((p: any) => p.tag === fetchedTag)) {
+      fetchedTeam = t;
+      break;
     }
-    if (fetchedTeamIndex !== -1) break;
   }
+  if (fetchedTeam === -1) return null;
 
-  if (fetchedTeamIndex === -1) return null;
-
-  // Determine win/loss per team
-  const fetchedTeamWon = battle.result === "victory";
+  const fetchedWon = battle.result === "victory";
   const isDraw = battle.result === "draw";
 
-  // Parse battleTime: "20260324T234248.000Z" → ISO date
   const bt = battleTime.replace(
     /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})\.(\d{3})Z$/,
     "$1-$2-$3T$4:$5:$6.$7Z"
@@ -148,23 +142,22 @@ function parseBattle(
     duration: battle.duration || null,
   };
 
-  const starPlayerTag = battle.starPlayer?.tag || null;
-
+  const starTag = battle.starPlayer?.tag || null;
   const playerRows: any[] = [];
-  for (let t = 0; t < battle.teams.length; t++) {
-    const teamWon = isDraw ? false : t === fetchedTeamIndex ? fetchedTeamWon : !fetchedTeamWon;
 
-    for (const player of battle.teams[t]) {
+  for (let t = 0; t < 2; t++) {
+    const won = isDraw ? false : t === fetchedTeam ? fetchedWon : !fetchedWon;
+    for (const p of battle.teams[t]) {
       playerRows.push({
         battle_id: battleId,
-        player_tag: player.tag,
-        brawler_id: player.brawler.id,
-        brawler_name: player.brawler.name,
-        brawler_power: player.brawler.power,
-        brawler_trophies: player.brawler.trophies,
+        player_tag: p.tag,
+        brawler_id: p.brawler.id,
+        brawler_name: p.brawler.name,
+        brawler_power: p.brawler.power,
+        brawler_trophies: p.brawler.trophies,
         team_num: t,
-        won: teamWon,
-        is_star_player: player.tag === starPlayerTag,
+        won,
+        is_star_player: p.tag === starTag,
       });
     }
   }
@@ -172,197 +165,179 @@ function parseBattle(
   return { battle: battleRow, players: playerRows };
 }
 
-// ─── Save Batch to Supabase ─────────────────────────────────────
-async function saveBattles(
-  battles: any[],
-  players: any[]
-): Promise<{ battlesSaved: number; playersSaved: number }> {
-  let battlesSaved = 0;
-  let playersSaved = 0;
+// ─── Fetch + Parse One Tag ──────────────────────────────────────
+async function processTag(tag: string): Promise<{ battles: any[]; players: any[] }> {
+  const encoded = encodeURIComponent(tag);
+  const data = await apiFetch(`/players/${encoded}/battlelog`);
 
-  if (battles.length > 0) {
-    // Upsert battles (ignore duplicates)
-    const { error: bErr, count } = await supabase
-      .from("battles")
-      .upsert(battles, { onConflict: "id", ignoreDuplicates: true })
-      .select("id");
-
-    if (bErr) {
-      console.error(`    Error saving battles: ${bErr.message}`);
-    }
+  if (!data?.items) {
+    totalSkipped++;
+    return { battles: [], players: [] };
   }
 
-  if (players.length > 0) {
-    // For players, we need to avoid duplicates.
-    // Delete-then-insert approach: first check which battle_ids are new
-    // Actually, simplest: just insert and catch errors, or use a unique constraint.
-    // For now, insert all — duplicates will be rare because we check battle existence.
-    const { error: pErr } = await supabase
-      .from("battle_players")
-      .upsert(players, { onConflict: "battle_id,player_tag", ignoreDuplicates: true });
+  const battles: any[] = [];
+  const players: any[] = [];
 
-    if (pErr) {
-      // If it's a unique constraint error, that's fine — means we already have these
-      if (!pErr.message.includes("duplicate") && !pErr.message.includes("unique")) {
-        console.error(`    Error saving players: ${pErr.message}`);
-      }
-    }
+  for (const entry of data.items) {
+    const parsed = parseBattle(entry, tag);
+    if (!parsed) continue;
+    battles.push(parsed.battle);
+    players.push(...parsed.players);
   }
 
-  return { battlesSaved: battles.length, playersSaved: players.length };
+  return { battles, players };
 }
 
-// ─── Mark Tag as Processed ──────────────────────────────────────
-async function markProcessed(tag: string) {
-  await supabase
-    .from("harvested_tags")
-    .update({ processed_at: new Date().toISOString() })
-    .eq("player_tag", tag);
+// ─── Batch DB Write ─────────────────────────────────────────────
+async function flushToDB(battles: any[], players: any[], processedTags: string[]) {
+  // Deduplicate battles by id
+  const uniqueBattles = new Map<string, any>();
+  for (const b of battles) uniqueBattles.set(b.id, b);
+  const dedupedBattles = Array.from(uniqueBattles.values());
+
+  // Deduplicate players by battle_id + player_tag
+  const uniquePlayers = new Map<string, any>();
+  for (const p of players) {
+    uniquePlayers.set(`${p.battle_id}:${p.player_tag}`, p);
+  }
+  const dedupedPlayers = Array.from(uniquePlayers.values());
+
+  // Write battles in chunks of 500
+  for (let i = 0; i < dedupedBattles.length; i += 500) {
+    const chunk = dedupedBattles.slice(i, i + 500);
+    const { error } = await supabase
+      .from("battles")
+      .upsert(chunk, { onConflict: "id", ignoreDuplicates: true });
+    if (error && !error.message.includes("duplicate")) {
+      console.error(`  DB error (battles): ${error.message}`);
+    }
+  }
+
+  // Write players in chunks of 500
+  for (let i = 0; i < dedupedPlayers.length; i += 500) {
+    const chunk = dedupedPlayers.slice(i, i + 500);
+    const { error } = await supabase
+      .from("battle_players")
+      .upsert(chunk, { onConflict: "battle_id,player_tag", ignoreDuplicates: true });
+    if (error && !error.message.includes("duplicate") && !error.message.includes("unique")) {
+      console.error(`  DB error (players): ${error.message}`);
+    }
+  }
+
+  // Mark tags as processed
+  for (let i = 0; i < processedTags.length; i += 500) {
+    const chunk = processedTags.slice(i, i + 500);
+    await supabase
+      .from("harvested_tags")
+      .update({ processed_at: new Date().toISOString() })
+      .in("player_tag", chunk);
+  }
+
+  totalBattlesSaved += dedupedBattles.length;
+  totalPlayersSaved += dedupedPlayers.length;
 }
 
 // ─── Get Unprocessed Tags ───────────────────────────────────────
-async function getUnprocessedTags(
-  limit: number = 1000,
-  offset: number = 0
-): Promise<string[]> {
+async function getUnprocessedTags(limit: number): Promise<string[]> {
   const { data, error } = await supabase
     .from("harvested_tags")
     .select("player_tag")
     .is("processed_at", null)
-    .range(offset, offset + limit - 1);
+    .limit(limit);
 
   if (error) {
     console.error(`Error fetching tags: ${error.message}`);
     return [];
   }
-
-  return (data || []).map((row: any) => row.player_tag);
-}
-
-// ─── Get Total Counts ───────────────────────────────────────────
-async function getCounts(): Promise<{ total: number; processed: number }> {
-  const { count: total } = await supabase
-    .from("harvested_tags")
-    .select("*", { count: "exact", head: true });
-
-  const { count: processed } = await supabase
-    .from("harvested_tags")
-    .select("*", { count: "exact", head: true })
-    .not("processed_at", "is", null);
-
-  return { total: total || 0, processed: processed || 0 };
+  return (data || []).map((r: any) => r.player_tag);
 }
 
 // ─── Print Stats ────────────────────────────────────────────────
-function printStats(currentIndex: number, totalTags: number) {
+function printStats(processed: number, total: number) {
   const elapsed = (Date.now() - startTime) / 1000;
-  const rps = totalRequests / elapsed;
-  const remaining = totalTags - currentIndex;
-  const etaSeconds = remaining / rps;
-  const etaMinutes = Math.floor(etaSeconds / 60);
-  const etaHours = Math.floor(etaMinutes / 60);
+  const tagsPerSec = processed / elapsed;
+  const remaining = total - processed;
+  const etaSec = tagsPerSec > 0 ? remaining / tagsPerSec : 0;
+  const etaH = Math.floor(etaSec / 3600);
+  const etaM = Math.floor((etaSec % 3600) / 60);
 
   console.log(
-    `\n  [STATS] ${currentIndex}/${totalTags} tags | ` +
-      `${totalBattlesSaved} battles | ${totalPlayersSaved} player records | ` +
-      `${total429s} rate limits | ${(rps).toFixed(1)} req/s | ` +
-      `ETA: ${etaHours}h ${etaMinutes % 60}m\n`
+    `  [${processed}/${total}] ` +
+      `${totalBattlesSaved} battles | ${totalPlayersSaved} player rows | ` +
+      `${total429s} 429s | ${tagsPerSec.toFixed(1)} tags/s | ${(totalRequests / elapsed).toFixed(1)} req/s | ` +
+      `ETA: ${etaH}h ${etaM}m`
   );
 }
 
 // ─── Main ───────────────────────────────────────────────────────
 async function main() {
-  console.log("=== BrawlLens Battle Collector ===\n");
+  console.log("=== BrawlLens Battle Collector (v2 — Optimized) ===\n");
 
-  // Check if processed_at column exists, add it if not
-  const { error: alterErr } = await supabase.rpc("exec_sql", {
-    sql: "ALTER TABLE harvested_tags ADD COLUMN IF NOT EXISTS processed_at TIMESTAMPTZ;",
-  });
+  const { count: totalCount } = await supabase
+    .from("harvested_tags")
+    .select("*", { count: "exact", head: true });
 
-  // If RPC doesn't exist, tell user to add column manually
-  if (alterErr) {
-    console.log(
-      "Note: Run this in Supabase SQL Editor if you haven't already:"
-    );
-    console.log(
-      "  ALTER TABLE harvested_tags ADD COLUMN IF NOT EXISTS processed_at TIMESTAMPTZ;\n"
-    );
-  }
+  const { count: processedCount } = await supabase
+    .from("harvested_tags")
+    .select("*", { count: "exact", head: true })
+    .not("processed_at", "is", null);
 
-  const counts = await getCounts();
-  console.log(
-    `Total tags: ${counts.total} | Already processed: ${counts.processed} | Remaining: ${counts.total - counts.processed}\n`
-  );
+  const total = totalCount || 0;
+  let processed = processedCount || 0;
+
+  console.log(`Total: ${total} | Done: ${processed} | Remaining: ${total - processed}`);
+  console.log(`Concurrency: ${CONCURRENCY} | DB flush every: ${DB_BATCH_SIZE} tags\n`);
 
   startTime = Date.now();
-  let globalIndex = counts.processed;
 
-  // Process in chunks of 1000 tags
   while (true) {
     const tags = await getUnprocessedTags(1000);
-    if (tags.length === 0) {
-      console.log("All tags processed!");
-      break;
+    if (tags.length === 0) break;
+
+    let accBattles: any[] = [];
+    let accPlayers: any[] = [];
+    let accTags: string[] = [];
+
+    for (let i = 0; i < tags.length; i += CONCURRENCY) {
+      const group = tags.slice(i, i + CONCURRENCY);
+
+      // Fire concurrent requests
+      const results = await Promise.all(group.map((tag) => processTag(tag)));
+
+      for (let k = 0; k < results.length; k++) {
+        accBattles.push(...results[k].battles);
+        accPlayers.push(...results[k].players);
+        accTags.push(group[k]);
+      }
+
+      // Flush when we've accumulated enough
+      if (accTags.length >= DB_BATCH_SIZE) {
+        await flushToDB(accBattles, accPlayers, accTags);
+        processed += accTags.length;
+        printStats(processed, total);
+        accBattles = [];
+        accPlayers = [];
+        accTags = [];
+      }
     }
 
-    for (let i = 0; i < tags.length; i++) {
-      const tag = tags[i];
-      const encodedTag = encodeURIComponent(tag);
-      globalIndex++;
-
-      // Fetch battle log
-      const data = await apiFetch(`/players/${encodedTag}/battlelog`);
-      await sleep(MIN_DELAY_MS);
-
-      if (!data?.items) {
-        totalSkipped++;
-        await markProcessed(tag);
-        continue;
-      }
-
-      // Parse all battles
-      const batchBattles: any[] = [];
-      const batchPlayers: any[] = [];
-
-      for (const entry of data.items) {
-        const parsed = parseBattle(entry, tag);
-        if (!parsed) continue;
-        batchBattles.push(parsed.battle);
-        batchPlayers.push(...parsed.players);
-      }
-
-      // Save batch
-      if (batchBattles.length > 0) {
-        const saved = await saveBattles(batchBattles, batchPlayers);
-        totalBattlesSaved += saved.battlesSaved;
-        totalPlayersSaved += saved.playersSaved;
-      }
-
-      // Mark as done
-      await markProcessed(tag);
-
-      // Print progress every 100 tags
-      if (globalIndex % 100 === 0) {
-        printStats(globalIndex, counts.total);
-      }
-
-      // Print dot every 10 tags for visual progress
-      if (globalIndex % 10 === 0 && globalIndex % 100 !== 0) {
-        process.stdout.write(".");
-      }
+    // Flush remainder
+    if (accTags.length > 0) {
+      await flushToDB(accBattles, accPlayers, accTags);
+      processed += accTags.length;
+      printStats(processed, total);
+      accBattles = [];
+      accPlayers = [];
+      accTags = [];
     }
   }
 
-  // Final stats
   const elapsed = (Date.now() - startTime) / 1000;
-  console.log("\n\n=== DONE ===");
-  console.log(`Total time: ${Math.floor(elapsed / 3600)}h ${Math.floor((elapsed % 3600) / 60)}m`);
-  console.log(`Total API requests: ${totalRequests}`);
-  console.log(`Total 429 rate limits: ${total429s}`);
-  console.log(`Total retries: ${totalRetries}`);
-  console.log(`Battles saved: ${totalBattlesSaved}`);
-  console.log(`Player records saved: ${totalPlayersSaved}`);
-  console.log(`Tags skipped (no data): ${totalSkipped}`);
+  console.log("\n=== DONE ===");
+  console.log(`Time: ${Math.floor(elapsed / 3600)}h ${Math.floor((elapsed % 3600) / 60)}m`);
+  console.log(`API requests: ${totalRequests} | 429s: ${total429s}`);
+  console.log(`Battles: ${totalBattlesSaved} | Player rows: ${totalPlayersSaved}`);
+  console.log(`Skipped: ${totalSkipped}`);
 }
 
 main().catch(console.error);
