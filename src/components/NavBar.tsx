@@ -8,6 +8,7 @@ const navItems = [
     { label: "[ Brawlers ]", href: "/brawlers" },
     { label: "[ Maps ]", href: "/meta" },
     { label: "[ Leaderboards ]", href: "/leaderboards" },
+    { label: "[ About ]", href: "/about"},
 ]
 
 export default function NavBar() {
