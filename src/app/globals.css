@@ -80,3 +80,6 @@ body.home-page {
   will-change: transform;
 }
 
+#nprogress .bar {
+  top: 72px !important;
+}

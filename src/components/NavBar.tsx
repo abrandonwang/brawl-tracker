@@ -21,8 +21,6 @@ export default function NavBar() {
         <>
             <div className={`w-full z-10 transition-all duration-300 ${isDark ? "bg-black border-b border-white/10" : "bg-white/70 backdrop-blur-xl border-b border-zinc-200/60"}`}>
                 <header className="h-[72px] flex items-center justify-between px-8">
-                    
-                    {/* LEFT: LOGO + SEARCH */}
                     <div className="flex items-center gap-4 shrink-0">
                         <Link href="/" className="flex items-center gap-3 group">
                             <div className="relative w-7 h-7 flex items-center justify-center">

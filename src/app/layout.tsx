@@ -4,6 +4,7 @@ import "./globals.css";
 import NavBar from "../components/NavBar"
 import Footer from "../components/Footer"
 import { MenuProvider } from "../context/MenuContext"
+import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${inter.variable} selection:bg-black selection:text-white flex flex-col min-h-dvh`}>
         <MenuProvider>
+          <NextTopLoader color = '#FFD400' showSpinner={false}/>
           <NavBar/>
           {children}
           <Footer/>
