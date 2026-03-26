@@ -5,9 +5,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const navItems = [
-    { label: "Brawlers", href: "/brawlers" },
-    { label: "Meta", href: "/meta" },
-    { label: "Leaderboards", href: "/leaderboards" },
+    { label: "[ Brawlers ]", href: "/brawlers" },
+    { label: "[ Maps ]", href: "/meta" },
+    { label: "[ Leaderboards ]", href: "/leaderboards" },
 ]
 
 export default function NavBar() {
@@ -58,23 +58,20 @@ export default function NavBar() {
 
                     {/* RIGHT: NAV + PROFILE */}
                     <div className="flex items-center gap-6">
-                        <nav className="hidden md:flex items-center gap-6">
+                        <nav className="hidden md:flex items-center gap-1">
                             {navItems.map((item) => {
                                 const isActive = pathname.startsWith(item.href)
                                 return (
                                     <Link
                                         key={item.label}
                                         href={item.href}
-                                        className={`relative text-sm font-bold tracking-tight transition-colors duration-300 group ${
+                                        className={`font-mono text-xs tracking-tight transition-all duration-200 px-3 py-1.5 rounded-sm ${
                                             isActive
-                                                ? (isDark ? "text-white" : "text-zinc-900")
-                                                : (isDark ? "text-white/30 hover:text-white/60" : "text-black-400")
+                                                ? (isDark ? "bg-[#FFD400] text-black font-bold" : "bg-zinc-900 text-white font-bold")
+                                                : (isDark ? "text-white/50 hover:text-white/80 hover:bg-white/5" : "text-zinc-600 hover:text-zinc-900 hover:bg-black/5")
                                         }`}
                                     >
                                         {item.label}
-                                        <span className={`absolute -bottom-1 left-0 h-[3px] rounded-full transition-all duration-300 ${
-                                            isDark ? "bg-white" : "bg-[black]" // Mint underline for active
-                                        } ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
                                     </Link>
                                 )
                             })}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { Search } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────
 interface MapInfo {
@@ -89,35 +90,28 @@ export default function MetaDashboard() {
   const [mapMeta, setMapMeta] = useState<MapMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMap, setLoadingMap] = useState(false);
+  const [mapSearchQuery, setMapSearchQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [minPicks, setMinPicks] = useState(10);
 
-  // Map images from Brawlify
   const [mapImageLookup, setMapImageLookup] = useState<Map<string, string>>(new Map());
-
-  // Current rotation map names
   const [rotationMapNames, setRotationMapNames] = useState<Set<string>>(new Set());
 
-  // Fetch everything on mount
   useEffect(() => {
     Promise.all([
       fetch("/api/meta").then((r) => r.json()),
       fetch("/api/rotation").then((r) => r.json()).catch(() => []),
       fetch("https://api.brawlify.com/v1/maps").then((r) => r.json()).catch(() => ({ list: [] })),
     ]).then(([metaData, rotationData, mapsData]) => {
-      // Meta modes
       const m = metaData.modes || [];
       setModes(m);
-      if (m.length > 0) setSelectedMode(m[0].mode);
 
-      // Rotation from official API: array of { event: { mode, map } }
       const activeNames = new Set<string>();
       for (const slot of rotationData || []) {
         if (slot.event?.map) activeNames.add(slot.event.map);
       }
       setRotationMapNames(activeNames);
 
-      // Map images from Brawlify
       const lookup = new Map<string, string>();
       for (const map of mapsData.list || []) {
         lookup.set(map.name, map.imageUrl);
@@ -128,7 +122,36 @@ export default function MetaDashboard() {
     }).catch(() => setLoading(false));
   }, []);
 
-  // Click a map
+  // ─── Stats ───────────────────────────────────────────────────
+  const allUniqueMaps = useMemo(() => {
+    const seen = new Set<string>();
+    const maps: MapInfo[] = [];
+    modes.forEach((m) => m.maps.forEach((map) => {
+      if (!seen.has(map.name)) { seen.add(map.name); maps.push(map); }
+    }));
+    return maps;
+  }, [modes]);
+
+  // ─── Sorted maps ─────────────────────────────────────────────
+  const sortedMaps = useMemo(() => {
+    const base = selectedMode === null
+      ? allUniqueMaps
+      : (modes.find((m) => m.mode === selectedMode)?.maps ?? []);
+
+    return [...base].sort((a, b) => {
+      const aLive = rotationMapNames.has(a.name) ? 1 : 0;
+      const bLive = rotationMapNames.has(b.name) ? 1 : 0;
+      if (bLive !== aLive) return bLive - aLive;
+      return b.battles - a.battles;
+    });
+  }, [modes, selectedMode, rotationMapNames, allUniqueMaps]);
+
+  const displayedMaps = useMemo(() => {
+    if (!mapSearchQuery) return sortedMaps;
+    return sortedMaps.filter((m) => m.name.toLowerCase().includes(mapSearchQuery.toLowerCase()));
+  }, [sortedMaps, mapSearchQuery]);
+
+  // ─── Map click ───────────────────────────────────────────────
   const handleMapClick = useCallback((mapName: string) => {
     setSelectedMap(mapName);
     setMapMeta(null);
@@ -137,27 +160,11 @@ export default function MetaDashboard() {
 
     fetch(`/api/meta?map=${encodeURIComponent(mapName)}`)
       .then((r) => r.json())
-      .then((data) => {
-        setMapMeta(data);
-        setLoadingMap(false);
-      })
+      .then((data) => { setMapMeta(data); setLoadingMap(false); })
       .catch(() => setLoadingMap(false));
   }, []);
 
-  // Sort maps: rotation first, then by battle count
-  const sortedMaps = useMemo(() => {
-    const currentMode = modes.find((m) => m.mode === selectedMode);
-    if (!currentMode) return [];
-
-    return [...currentMode.maps].sort((a, b) => {
-      const aLive = rotationMapNames.has(a.name) ? 1 : 0;
-      const bLive = rotationMapNames.has(b.name) ? 1 : 0;
-      if (bLive !== aLive) return bLive - aLive;
-      return b.battles - a.battles;
-    });
-  }, [modes, selectedMode, rotationMapNames]);
-
-  // Filter brawlers
+  // ─── Filter brawlers ─────────────────────────────────────────
   const filteredBrawlers = useMemo(() => {
     if (!mapMeta) return [];
     return mapMeta.brawlers.filter((b) => {
@@ -186,36 +193,57 @@ export default function MetaDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* ── Mode Tabs ──────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-2">
-        {modes.map((m) => {
-          const isActive = selectedMode === m.mode;
-          const color = getModeColor(m.mode);
-          return (
-            <button
-              key={m.mode}
-              onClick={() => {
-                setSelectedMode(m.mode);
-                setSelectedMap(null);
-                setMapMeta(null);
-              }}
-              style={isActive ? { backgroundColor: color, color: "#000" } : undefined}
-              className={`px-4 py-2 rounded-full text-sm font-bold tracking-tight transition-all duration-200
-                ${isActive ? "shadow-lg" : "bg-white/[0.04] text-white/40 hover:bg-white/[0.08] hover:text-white/60 border border-white/[0.06]"}`}
-            >
-              {getModeName(m.mode)}
-              <span className={`ml-2 text-xs ${isActive ? "opacity-60" : "opacity-30"}`}>
-                {m.totalBattles >= 1000 ? `${(m.totalBattles / 1000).toFixed(1)}k` : m.totalBattles}
-              </span>
-            </button>
-          );
-        })}
+
+      {/* ── Search + Mode Filter ────────────────────────────── */}
+      <div className="flex items-center gap-3 w-full overflow-x-auto pb-1">
+        {/* Search */}
+        <div className="flex items-center gap-2.5 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 shrink-0 transition-colors focus-within:bg-zinc-800 focus-within:border-white/25">
+          <Search size={13} className="text-white/30" />
+          <input
+            value={mapSearchQuery}
+            onChange={(e) => setMapSearchQuery(e.target.value)}
+            placeholder="Search maps"
+            className="bg-transparent text-sm text-white/80 outline-none placeholder:text-white/25 w-32"
+          />
+        </div>
+
+        <div className="w-px h-5 bg-white/10 shrink-0" />
+
+        {/* Mode buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setSelectedMode(null)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+              selectedMode === null ? "bg-white text-black" : "bg-zinc-900 border border-white/10 text-white/40 hover:text-white/70"
+            }`}
+          >
+            All
+          </button>
+          {modes.map((m) => {
+            const isActive = selectedMode === m.mode;
+            const color = getModeColor(m.mode);
+            return (
+              <button
+                key={m.mode}
+                onClick={() => setSelectedMode(isActive ? null : m.mode)}
+                className={`cursor-pointer px-3.5 py-2 rounded-xl text-xs font-medium transition-all border ${!isActive && "text-white/40 hover:text-white/70"}`}
+                style={{
+                  color: isActive ? color : undefined,
+                  borderColor: isActive ? color : "rgba(255,255,255,0.1)",
+                  backgroundColor: isActive ? `${color}15` : "transparent",
+                }}
+              >
+                {getModeName(m.mode)}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Map Grid ───────────────────────────────────────── */}
       {!selectedMap && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {sortedMaps.map((map) => {
+          {displayedMaps.map((map) => {
             const imageUrl = mapImageLookup.get(map.name);
             const isLive = rotationMapNames.has(map.name);
             return (
@@ -248,7 +276,7 @@ export default function MetaDashboard() {
 
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="text-white font-bold text-sm truncate leading-tight">{map.name}</h3>
-                    <p className="text-white/30 text-xs mt-0.5 font-medium">
+                    <p className="text-white/50 text-xs mt-0.5 font-medium">
                       {map.battles.toLocaleString()} battles
                     </p>
                   </div>
@@ -276,11 +304,11 @@ export default function MetaDashboard() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5" /><path d="m12 19-7-7 7-7" />
                 </svg>
-                {getModeName(selectedMode || "")}
+                {selectedMode ? getModeName(selectedMode) : "All Maps"}
               </button>
               <h2 className="text-2xl font-bold text-white leading-tight">{selectedMap}</h2>
               {mapMeta && (
-                <p className="text-white/20 text-sm mt-1">{mapMeta.totalBattles.toLocaleString()} battles sampled</p>
+                <p className="text-white/50 text-sm mt-1">{mapMeta.totalBattles.toLocaleString()} battles sampled</p>
               )}
             </div>
           </div>
@@ -310,7 +338,7 @@ export default function MetaDashboard() {
                     className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
                   />
                 </div>
-                <div className="flex items-center gap-2 text-xs text-white/30">
+                <div className="flex items-center gap-2 text-xs text-white/50">
                   <span className="whitespace-nowrap font-medium">Min picks:</span>
                   <select
                     value={minPicks}
@@ -326,13 +354,13 @@ export default function MetaDashboard() {
                 </div>
               </div>
 
-              <p className="text-white/15 text-xs mb-4">Showing {filteredBrawlers.length} brawlers</p>
+              <p className="text-white/40 text-xs mb-4">Showing {filteredBrawlers.length} brawlers</p>
 
               {filteredBrawlers.length === 0 ? (
                 <p className="text-white/30 text-center py-16">No brawlers match your filters.</p>
               ) : (
                 <div className="space-y-1.5">
-                  <div className="grid grid-cols-[44px_1fr_100px_70px_36px] sm:grid-cols-[44px_1fr_120px_80px_80px_36px] gap-3 px-3 py-2 text-[10px] font-bold text-white/15 uppercase tracking-widest">
+                  <div className="grid grid-cols-[44px_1fr_100px_70px_36px] sm:grid-cols-[44px_1fr_120px_80px_80px_36px] gap-3 px-3 py-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
                     <span></span>
                     <span>Brawler</span>
                     <span>Win Rate</span>
@@ -358,8 +386,8 @@ export default function MetaDashboard() {
                             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${getBarWidth(brawler.winRate)}%`, backgroundColor: tier.color, opacity: 0.5 }} />
                           </div>
                         </div>
-                        <span className="text-right text-white/20 text-sm tabular-nums hidden sm:block">{brawler.wins.toLocaleString()}</span>
-                        <span className="text-right text-white/20 text-sm tabular-nums">{brawler.picks.toLocaleString()}</span>
+                        <span className="text-right text-white/45 text-sm tabular-nums hidden sm:block">{brawler.wins.toLocaleString()}</span>
+                        <span className="text-right text-white/45 text-sm tabular-nums">{brawler.picks.toLocaleString()}</span>
                         <div className="flex justify-center">
                           <span className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[10px] font-black" style={{ color: tier.color, backgroundColor: tier.bg, borderWidth: 1, borderColor: tier.border }}>{tier.label}</span>
                         </div>
