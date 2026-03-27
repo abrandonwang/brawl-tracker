@@ -10,8 +10,8 @@ interface Props {
     setSearch: (s: string) => void
 }
 
-const linkBase = "font-mono text-xs font-bold tracking-tight transition-all duration-200 px-3 py-1.5 rounded-sm text-left"
-const linkInactive = `${linkBase} text-white/70 hover:text-white hover:bg-white/5`
+const linkBase = "text-xs font-semibold tracking-tight transition-all duration-200 px-3 py-1.5 rounded-lg text-left"
+const linkInactive = `${linkBase} text-white/50 hover:text-white hover:bg-white/5`
 const linkActive = `${linkBase} bg-[#FFD400] text-black`
 
 export default function BrawlersSidebar({ rarities, activeRarity, setActiveRarity, search, setSearch }: Props) {
@@ -35,7 +35,7 @@ export default function BrawlersSidebar({ rarities, activeRarity, setActiveRarit
                 onClick={() => setActiveRarity(null)}
                 className={activeRarity === null ? linkActive : linkInactive}
             >
-                [ All ]
+                All
             </button>
 
             {/* Rarity buttons */}
@@ -48,7 +48,7 @@ export default function BrawlersSidebar({ rarities, activeRarity, setActiveRarit
                         className={isActive ? linkBase : linkInactive}
                         style={isActive ? { backgroundColor: `${color}20`, color } : undefined}
                     >
-                        [ {name} ]
+                        {name}
                     </button>
                 )
             })}

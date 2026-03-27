@@ -9,8 +9,8 @@ const sections = [
     { id: "contact", label: "Contact" },
 ]
 
-const linkBase = "font-mono text-xs font-bold tracking-tight transition-all duration-200 px-3 py-1.5 rounded-sm text-left"
-const linkInactive = `${linkBase} text-white/70 hover:text-white hover:bg-white/5`
+const linkBase = "text-xs font-semibold tracking-tight transition-all duration-200 px-3 py-1.5 rounded-lg text-left"
+const linkInactive = `${linkBase} text-white/50 hover:text-white hover:bg-white/5`
 const linkActive = `${linkBase} bg-[#FFD400] text-black`
 
 const features = [
@@ -60,7 +60,7 @@ function AboutPage() {
                         onClick={() => setActive(id)}
                         className={active === id ? linkActive : linkInactive}
                     >
-                        [ {label} ]
+                        {label}
                     </button>
                 ))}
             </aside>

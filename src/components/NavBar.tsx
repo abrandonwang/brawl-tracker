@@ -5,10 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const navItems = [
-    { label: "[ Brawlers ]", href: "/brawlers" },
-    { label: "[ Maps ]", href: "/meta" },
-    { label: "[ Leaderboards ]", href: "/leaderboards" },
-    { label: "[ About ]", href: "/about" },
+    { label: "Brawlers", href: "/brawlers" },
+    { label: "Maps", href: "/meta" },
+    { label: "Leaderboards", href: "/leaderboards" },
+    { label: "About", href: "/about" },
 ]
 
 export default function NavBar() {
@@ -48,16 +48,16 @@ export default function NavBar() {
                         <button
                             onClick={() => setIsSearchOpen(true)}
                             className={`flex items-center justify-center md:justify-start gap-3 p-2 md:px-4 md:py-2 rounded-xl md:rounded-2xl transition-all group ${
-                                isDark ? "bg-white/5 hover:bg-white/10" : "bg-white/80 hover:bg-white shadow-sm border border-zinc-100"
+                                isDark ? "bg-white hover:bg-zinc-100 shadow-sm" : "bg-zinc-900 hover:bg-zinc-800 shadow-sm"
                             }`}
                         >
-                            <Search size={16} className={isDark ? "text-white/40" : "text-zinc-400"} />
-                            <span className={`text-[10px] font-bold uppercase tracking-widest pr-4 hidden md:block ${isDark ? "text-white/60" : "text-zinc-500"}`}>
+                            <Search size={16} className={isDark ? "text-zinc-500" : "text-white/60"} />
+                            <span className={`text-[10px] font-bold uppercase tracking-widest pr-4 hidden md:block ${isDark ? "text-zinc-500" : "text-white/60"}`}>
                                 Search...
                             </span>
-                            <div className="hidden lg:flex items-center gap-1 opacity-20 group-hover:opacity-40 transition-opacity">
-                                <Command size={10} className={isDark ? "text-white" : "text-zinc-900"} />
-                                <span className={`text-[9px] font-black ${isDark ? "text-white" : "text-zinc-900"}`}>K</span>
+                            <div className="hidden lg:flex items-center gap-1 opacity-30 group-hover:opacity-60 transition-opacity">
+                                <Command size={10} className={isDark ? "text-zinc-900" : "text-white"} />
+                                <span className={`text-[9px] font-black ${isDark ? "text-zinc-900" : "text-white"}`}>K</span>
                             </div>
                         </button>
                     </div>
@@ -65,14 +65,14 @@ export default function NavBar() {
                     {/* RIGHT: Desktop Nav & Mobile Toggle */}
                     <div className="flex items-center gap-2 md:gap-6">
                         {/* Desktop Navigation */}
-                        <nav className="hidden lg:flex items-center gap-1">
+                        <nav className={`hidden lg:flex items-center divide-x rounded-xl overflow-hidden border ${isDark ? "border-white/20 divide-white/20" : "border-black/15 divide-black/15"}`}>
                             {navItems.map((item) => {
                                 const isActive = pathname.startsWith(item.href)
                                 return (
                                     <Link
                                         key={item.label}
                                         href={item.href}
-                                        className={`font-mono whitespace-nowrap text-xs font-bold tracking-tight transition-all duration-200 px-3 py-1.5 rounded-sm ${
+                                        className={`whitespace-nowrap text-xs font-bold tracking-tight transition-all duration-200 px-4 py-2 ${
                                             isActive
                                                 ? (isDark ? "bg-[#FFD400] text-black" : "bg-zinc-900 text-white")
                                                 : (isDark ? "text-white/70 hover:text-white hover:bg-white/5" : "text-black/60 hover:text-zinc-950 hover:bg-black/5")
@@ -122,7 +122,7 @@ export default function NavBar() {
                                     <Link
                                         key={item.label}
                                         href={item.href}
-                                        className={`font-mono text-xs font-bold px-3 py-2.5 rounded-xl transition-all ${
+                                        className={`text-xs font-bold px-3 py-2.5 rounded-xl transition-all ${
                                             isActive
                                                 ? (isDark ? "bg-[#FFD400] text-black" : "bg-zinc-900 text-white")
                                                 : (isDark ? "text-white/60 hover:text-white hover:bg-white/5" : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50")
