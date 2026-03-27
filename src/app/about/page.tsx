@@ -66,20 +66,17 @@ function AboutPage() {
             </aside>
 
             <main className="flex-1 min-w-0 pt-10 pb-20 px-12">
-                {/* Breadcrumb */}
                 <div className="flex items-center gap-2 text-xs text-white/30 mb-10">
                     <span>BrawlLens</span>
                     <span>›</span>
                     <span className="text-white/60">{activeSection?.label}</span>
                 </div>
 
-                {/* ── ABOUT ─────────────────────────────────────── */}
+                {/* About */}
                 {active === "about" && (
                     <div className="space-y-14">
-
-                        {/* Hero */}
                         <div>
-                            <p className="font-mono text-xs text-[#FFD400] font-bold mb-4 tracking-widest uppercase">[ Why this exists ]</p>
+                            <p className="text-xs text-[#FFD400] font-bold mb-4 tracking-widest uppercase">Why this exists</p>
                             <h1 className="text-4xl font-black text-white tracking-tight leading-tight mb-5">
                                 A stat site that doesn't get in your way.
                             </h1>
@@ -88,7 +85,6 @@ function AboutPage() {
                             </p>
                         </div>
 
-                        {/* Features */}
                         <div>
                             <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-5">What's inside</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
@@ -106,7 +102,6 @@ function AboutPage() {
                             </div>
                         </div>
 
-                        {/* Data source */}
                         <div className="border border-white/8 rounded-2xl p-5 bg-white/[0.02] flex items-center gap-4">
                             <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
                                 <Zap size={15} className="text-white/60" />
@@ -117,7 +112,6 @@ function AboutPage() {
                             </div>
                         </div>
 
-                        {/* Fan content */}
                         <div className="border border-white/8 rounded-xl p-4 flex items-center justify-between">
                             <div>
                                 <p className="text-xs font-medium text-white">Fan Content Policy</p>
@@ -135,16 +129,16 @@ function AboutPage() {
                     </div>
                 )}
 
-                {/* ── PRIVACY ───────────────────────────────────── */}
+                {/* Privacy */}
                 {active === "privacy-policy" && (
                     <div className="space-y-10">
                         <div>
-                            <p className="font-mono text-xs text-[#FFD400] font-bold mb-4 tracking-widest uppercase">[ Zero tracking ]</p>
+                            <p className="text-xs text-[#FFD400] font-bold mb-4 tracking-widest uppercase">Zero tracking</p>
                             <h1 className="text-4xl font-black text-white tracking-tight mb-4">Your data stays yours.</h1>
                             <p className="text-white/60 leading-relaxed">BrawlLens doesn't collect personal data, run ads, or share anything with third parties.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
                             <div className="border border-white/8 rounded-2xl p-5 bg-white/[0.02]">
                                 <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">What I don't collect</p>
                                 <ul className="space-y-2.5">
@@ -182,40 +176,39 @@ function AboutPage() {
                     </div>
                 )}
 
-                {/* ── CONTACT ───────────────────────────────────── */}
+                {/* Contact */}
                 {active === "contact" && (
                     <div className="space-y-10">
                         <div>
-                            <p className="font-mono text-xs text-[#FFD400] font-bold mb-4 tracking-widest uppercase">[ Get in touch ]</p>
+                            <p className="text-xs text-[#FFD400] font-bold mb-4 tracking-widest uppercase">Get in touch</p>
                             <h1 className="text-4xl font-black text-white tracking-tight mb-2">I'm listening.</h1>
                             <p className="text-white/50 text-sm">Found a bug, have a feature idea, or just want to say hi?</p>
                         </div>
 
-                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                            {/* Form */}
-                            <form className="xl:col-span-2 space-y-4">
+                        <div className="max-w-2xl space-y-6">
+                            <form className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-medium text-white/50 mb-2">Name</label>
                                         <input
                                             placeholder="Your name"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 focus:bg-white/8 transition-colors placeholder:text-white/20"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors placeholder:text-white/20"
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-medium text-white/50 mb-2">Email</label>
                                         <input
                                             placeholder="your@email.com"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 focus:bg-white/8 transition-colors placeholder:text-white/20"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors placeholder:text-white/20"
                                         />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-white/50 mb-2">Message</label>
                                     <textarea
-                                        rows={8}
+                                        rows={6}
                                         placeholder="What's on your mind?"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 focus:bg-white/8 transition-colors resize-none placeholder:text-white/20"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors resize-none placeholder:text-white/20"
                                     />
                                 </div>
                                 <button className="px-6 py-3 bg-white text-black text-sm font-bold rounded-xl hover:bg-white/90 transition-colors">
@@ -223,28 +216,17 @@ function AboutPage() {
                                 </button>
                             </form>
 
-                            {/* Right panel */}
-                            <div className="flex flex-col gap-4">
-                                <div className="border border-white/8 rounded-2xl p-6 bg-white/[0.02] flex-1">
-                                    <p className="text-xs font-bold text-white/30 uppercase tracking-widest mb-4">What to expect</p>
-                                    <ul className="space-y-4">
-                                        {[
-                                            { label: "Bug reports", note: "I'll investigate and push a fix as soon as I can." },
-                                            { label: "Feature requests", note: "I read every one. No promises, but I do consider them." },
-                                            { label: "General feedback", note: "Always appreciated. Good or bad." },
-                                        ].map(({ label, note }) => (
-                                            <li key={label}>
-                                                <p className="text-sm font-semibold text-white/80 mb-0.5">{label}</p>
-                                                <p className="text-xs text-white/40 leading-relaxed">{note}</p>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                <div className="border border-white/8 rounded-2xl p-6 bg-white/[0.02]">
-                                    <p className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3">Response time</p>
-                                    <p className="text-sm text-white/60 leading-relaxed">Usually within a few days. This is a solo project, so I appreciate your patience.</p>
-                                </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                                {[
+                                    { label: "Bug reports", note: "I'll investigate and push a fix as soon as I can." },
+                                    { label: "Feature requests", note: "I read every one. No promises, but I do consider them." },
+                                    { label: "General feedback", note: "Always appreciated. Good or bad." },
+                                ].map(({ label, note }) => (
+                                    <div key={label} className="border border-white/8 rounded-2xl p-4 bg-white/[0.02]">
+                                        <p className="text-xs font-semibold text-white/70 mb-1">{label}</p>
+                                        <p className="text-xs text-white/40 leading-relaxed">{note}</p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
