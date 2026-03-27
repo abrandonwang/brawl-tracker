@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { Trophy } from "lucide-react"
 
 const REGIONS = [
@@ -22,14 +24,22 @@ async function fetchLeaderboard(region: string): Promise<Player[]> {
     const res = await fetch(
       `https://api.brawlstars.com/v1/rankings/${region}/players`,
       {
-        headers: { Authorization: `Bearer ${process.env.BRAWL_API_KEY}` },
-        next: { revalidate: 300 },
+        headers: {
+          Authorization: `Bearer ${process.env.BRAWL_API_KEY}`,
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+        },
+        cache: "no-store",
       }
     )
-    if (!res.ok) return []
+    if (!res.ok && res.status !== 304) {
+      console.error(`Leaderboard fetch failed [${region}]: ${res.status} ${res.statusText}`)
+      return []
+    }
     const data = await res.json()
     return data.items || []
-  } catch {
+  } catch (e) {
+    console.error(`Leaderboard fetch error [${region}]:`, e)
     return []
   }
 }
