@@ -10,7 +10,7 @@ const sections = [
     { id: "contact", label: "Contact" },
 ]
 
-const linkBase = "text-xs font-semibold tracking-tight transition-all duration-200 px-3 py-1.5 rounded-lg text-left"
+const linkBase = "text-xs font-semibold tracking-tight transition-all duration-200 px-3 py-1.5 rounded text-left"
 const linkInactive = `${linkBase} text-white/50 hover:text-white hover:bg-white/5`
 const linkActive = `${linkBase} bg-[#FFD400] text-black`
 
@@ -54,7 +54,7 @@ function AboutPage() {
 
     return (
         <>
-            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-0 h-auto lg:h-[calc(100dvh-72px)] border-b lg:border-b-0 lg:border-r border-white/10 py-5 lg:py-10 px-5 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto">
+            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-0 h-auto lg:h-[calc(100dvh-52px)] border-b lg:border-b-0 lg:border-r border-white/10 py-5 lg:py-10 px-5 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto">
                 {sections.map(({ id, label }) => (
                     <button
                         key={id}
@@ -90,9 +90,9 @@ function AboutPage() {
                             <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-5">What's inside</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                                 {features.map(({ icon: Icon, title, description }) => (
-                                    <div key={title} className="border border-white/8 rounded-2xl p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                                    <div key={title} className="border border-white/8 rounded p-5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                                         <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-8 h-8 rounded-lg bg-[#FFD400]/10 border border-[#FFD400]/20 flex items-center justify-center shrink-0">
+                                            <div className="w-8 h-8 rounded bg-[#FFD400]/10 border border-[#FFD400]/20 flex items-center justify-center shrink-0">
                                                 <Icon size={15} className="text-[#FFD400]" />
                                             </div>
                                             <h3 className="text-sm font-semibold text-white">{title}</h3>
@@ -103,8 +103,8 @@ function AboutPage() {
                             </div>
                         </div>
 
-                        <div className="border border-white/8 rounded-2xl p-5 bg-white/[0.02] flex items-center gap-4">
-                            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                        <div className="border border-white/8 rounded p-5 bg-white/[0.02] flex items-center gap-4">
+                            <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
                                 <Zap size={15} className="text-white/60" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -113,7 +113,7 @@ function AboutPage() {
                             </div>
                         </div>
 
-                        <div className="border border-white/8 rounded-xl p-4 flex items-center justify-between">
+                        <div className="border border-white/8 rounded-md p-4 flex items-center justify-between">
                             <div>
                                 <p className="text-xs font-medium text-white">Fan Content Policy</p>
                                 <p className="text-xs text-white/40 mt-0.5">Supercell is not responsible for this site.</p>
@@ -140,7 +140,7 @@ function AboutPage() {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
-                            <div className="border border-white/8 rounded-2xl p-5 bg-white/[0.02]">
+                            <div className="border border-white/8 rounded p-5 bg-white/[0.02]">
                                 <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">What I don't collect</p>
                                 <ul className="space-y-2.5">
                                     {[
@@ -159,7 +159,7 @@ function AboutPage() {
                                 </ul>
                             </div>
 
-                            <div className="border border-white/8 rounded-2xl p-5 bg-white/[0.02]">
+                            <div className="border border-white/8 rounded p-5 bg-white/[0.02]">
                                 <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">What I do store</p>
                                 <ul className="space-y-2.5">
                                     {[
@@ -195,7 +195,7 @@ function AboutPage() {
                                     { label: "Feature requests", note: "I read every one. No promises, but I do consider them." },
                                     { label: "General feedback", note: "Always appreciated. Good or bad." },
                                 ].map(({ label, note }) => (
-                                    <div key={label} className="border border-white/8 rounded-2xl p-4 bg-white/[0.02]">
+                                    <div key={label} className="border border-white/8 rounded p-4 bg-white/[0.02]">
                                         <p className="text-xs font-semibold text-white/70 mb-1">{label}</p>
                                         <p className="text-xs text-white/40 leading-relaxed">{note}</p>
                                     </div>
@@ -223,7 +223,7 @@ function ContactForm() {
 
     if (status === "success") {
         return (
-            <div className="border border-white/8 rounded-2xl p-8 bg-white/[0.02] flex flex-col items-start gap-2">
+            <div className="border border-white/8 rounded p-8 bg-white/[0.02] flex flex-col items-start gap-2">
                 <Check size={20} className="text-green-400" />
                 <p className="text-sm font-semibold text-white">Message sent.</p>
                 <p className="text-xs text-white/40">I'll get back to you within a few days.</p>
@@ -240,7 +240,7 @@ function ContactForm() {
                         name="name"
                         placeholder="Your name"
                         required
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors placeholder:text-white/20"
+                        className="w-full bg-white/5 border border-white/10 rounded-md px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors placeholder:text-white/20"
                     />
                 </div>
                 <div>
@@ -250,7 +250,7 @@ function ContactForm() {
                         type="email"
                         placeholder="your@email.com"
                         required
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors placeholder:text-white/20"
+                        className="w-full bg-white/5 border border-white/10 rounded-md px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors placeholder:text-white/20"
                     />
                 </div>
             </div>
@@ -261,7 +261,7 @@ function ContactForm() {
                     rows={6}
                     placeholder="What's on your mind?"
                     required
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors resize-none placeholder:text-white/20"
+                    className="w-full bg-white/5 border border-white/10 rounded-md px-4 py-3 text-sm text-white outline-none focus:border-white/30 transition-colors resize-none placeholder:text-white/20"
                 />
             </div>
             {status === "error" && (
@@ -270,7 +270,7 @@ function ContactForm() {
             <button
                 type="submit"
                 disabled={pending}
-                className="px-6 py-3 bg-white text-black text-sm font-bold rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50"
+                className="px-6 py-3 bg-white text-black text-sm font-bold rounded-md hover:bg-white/90 transition-colors disabled:opacity-50"
             >
                 {pending ? "Sending..." : "Send message"}
             </button>

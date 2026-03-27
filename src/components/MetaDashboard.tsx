@@ -207,9 +207,9 @@ export default function MetaDashboard({ selectedMode, mapSearch }: Props) {
               <button
                 key={map.name}
                 onClick={() => handleMapClick(map.name)}
-                className="group relative rounded-2xl overflow-hidden text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:shadow-black/20"
+                className="group relative rounded overflow-hidden text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:shadow-black/20"
               >
-                <div className="aspect-[4/3] relative bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="aspect-[4/3] relative bg-white/[0.03] border border-white/[0.06] rounded overflow-hidden">
                   {imageUrl ? (
                     <img
                       src={imageUrl}
@@ -219,7 +219,7 @@ export default function MetaDashboard({ selectedMode, mapSearch }: Props) {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-xl opacity-20" style={{ backgroundColor: getModeColor(selectedMode || "") }} />
+                      <div className="w-12 h-12 rounded-md opacity-20" style={{ backgroundColor: getModeColor(selectedMode || "") }} />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
@@ -249,7 +249,7 @@ export default function MetaDashboard({ selectedMode, mapSearch }: Props) {
         <div>
           <div className="flex items-start gap-4 mb-6">
             {mapImageLookup.get(selectedMap) && (
-              <div className="w-20 h-15 rounded-xl overflow-hidden shrink-0 border border-white/10">
+              <div className="w-20 h-15 rounded-md overflow-hidden shrink-0 border border-white/10">
                 <img src={mapImageLookup.get(selectedMap)!} alt={selectedMap} className="w-full h-full object-cover" />
               </div>
             )}
@@ -292,7 +292,7 @@ export default function MetaDashboard({ selectedMode, mapSearch }: Props) {
                     placeholder="Search brawler..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
+                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-md pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
                   />
                 </div>
                 <div className="flex items-center gap-2 text-xs text-white/50">
@@ -300,7 +300,7 @@ export default function MetaDashboard({ selectedMode, mapSearch }: Props) {
                   <select
                     value={minPicks}
                     onChange={(e) => setMinPicks(Number(e.target.value))}
-                    className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                    className="bg-white/[0.04] border border-white/[0.08] rounded px-2.5 py-2.5 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
                   >
                     <option value={5}>5+</option>
                     <option value={10}>10+</option>
@@ -331,9 +331,9 @@ export default function MetaDashboard({ selectedMode, mapSearch }: Props) {
                     return (
                       <div
                         key={brawler.brawlerId}
-                        className="grid grid-cols-[44px_1fr_100px_70px_36px] sm:grid-cols-[44px_1fr_120px_80px_80px_36px] gap-3 items-center px-3 py-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-150"
+                        className="grid grid-cols-[44px_1fr_100px_70px_36px] sm:grid-cols-[44px_1fr_120px_80px_80px_36px] gap-3 items-center px-3 py-2.5 rounded-md bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-150"
                       >
-                        <div className="w-9 h-9 rounded-lg bg-white/[0.04] overflow-hidden flex items-center justify-center">
+                        <div className="w-9 h-9 rounded bg-white/[0.04] overflow-hidden flex items-center justify-center">
                           <img src={getBrawlerImage(brawler.brawlerId)} alt={brawler.name} width={32} height={32} className="object-contain" loading="lazy" />
                         </div>
                         <span className="text-white font-semibold text-sm truncate">{formatBrawlerName(brawler.name)}</span>

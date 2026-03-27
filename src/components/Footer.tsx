@@ -7,14 +7,15 @@ export default function Footer() {
     if (pathname !== "/") return null
 
     return (
-        <footer className="relative z-10 w-full border-t border-zinc-200/60 bg-white/70 backdrop-blur-xl">
-            <div className="px-8 py-4 flex items-center justify-center sm:justify-between">
-                <p className="hidden sm:block text-sm font-medium text-zinc-900">© 2025 BrawlLens. All rights reserved.</p>
-                <div className="flex items-center divide-x divide-black/10 border border-black/10 rounded-xl overflow-hidden">
-                    <Link href="/about?section=privacy-policy" className="text-xs font-bold tracking-tight transition-all duration-200 px-4 py-2 text-zinc-500 hover:text-zinc-900 hover:bg-black/5">
+        <footer className="relative z-10">
+            <div className="h-[52px] grid grid-cols-3 items-center px-4 md:px-6">
+                <p className="hidden sm:block text-xs font-medium text-zinc-600">© 2025 BrawlLens</p>
+                <div className="hidden sm:block" />
+                <div className="flex items-center justify-end gap-1">
+                    <Link href="/about?section=privacy-policy" className="text-xs font-bold text-zinc-600 hover:text-black transition-colors px-3 py-1.5 rounded hover:bg-black/5">
                         Privacy Policy
                     </Link>
-                    <Link href="/about?section=contact" className="text-xs font-bold tracking-tight transition-all duration-200 px-4 py-2 text-zinc-500 hover:text-zinc-900 hover:bg-black/5">
+                    <Link href="/about?section=contact" className="text-xs font-bold text-zinc-600 hover:text-black transition-colors px-3 py-1.5 rounded hover:bg-black/5">
                         Contact
                     </Link>
                 </div>

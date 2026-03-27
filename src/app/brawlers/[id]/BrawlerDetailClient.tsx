@@ -30,7 +30,7 @@ interface Brawler {
     gadgets: Gadget[]
 }
 
-const linkBase = "text-xs font-semibold tracking-tight transition-all duration-200 px-3 py-1.5 rounded-lg text-left whitespace-nowrap"
+const linkBase = "text-xs font-semibold tracking-tight transition-all duration-200 px-3 py-1.5 rounded text-left whitespace-nowrap"
 const linkInactive = `${linkBase} text-white/50 hover:text-white hover:bg-white/5`
 const linkActive = `${linkBase} bg-[#FFD400] text-black`
 
@@ -39,7 +39,7 @@ export default function BrawlerDetailClient({ brawler }: { brawler: Brawler }) {
 
     return (
         <div className="flex-1 flex flex-col lg:flex-row min-h-0">
-            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-0 h-auto lg:h-[calc(100dvh-72px)] border-b lg:border-b-0 lg:border-r border-white/10 py-5 lg:py-10 px-5 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto">
+            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-0 h-auto lg:h-[calc(100dvh-52px)] border-b lg:border-b-0 lg:border-r border-white/10 py-5 lg:py-10 px-5 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto">
                 <Link
                     href="/brawlers"
                     className="flex items-center gap-2 text-xs font-semibold text-white/40 hover:text-white transition-colors px-3 py-1.5 mb-2 shrink-0"

@@ -37,7 +37,7 @@ export default function BrawlerDetail({ brawler, activeTab }: Props) {
         <div>
             <div className="flex flex-col md:flex-row items-start gap-10 mb-14">
                 <div
-                    className="w-48 h-48 rounded-2xl border-2 p-4 shrink-0 flex items-center justify-center"
+                    className="w-48 h-48 rounded-lg border-2 p-4 shrink-0 flex items-center justify-center"
                     style={{ borderColor: rarityColor, backgroundColor: `${rarityColor}10` }}
                 >
                     <img
@@ -72,7 +72,7 @@ export default function BrawlerDetail({ brawler, activeTab }: Props) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {items.map(item => (
-                    <div key={item.id} className="flex items-start gap-4 bg-zinc-900 border border-white/5 rounded-xl p-4 hover:border-white/15 transition-colors">
+                    <div key={item.id} className="flex items-start gap-4 bg-zinc-900 border border-white/5 rounded-md p-4 hover:border-white/15 transition-colors">
                         <img src={item.imageUrl} alt={item.name} className="w-12 h-12 object-contain shrink-0" />
                         <div>
                             <h3 className="text-sm font-semibold text-white mb-1">{item.name}</h3>

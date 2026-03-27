@@ -57,7 +57,7 @@ export default function Home() {
               <div key={i} className="overflow-hidden leading-none">
                 <motion.h1
                   variants={slideUp}
-                  className="text-[72px] sm:text-[96px] md:text-[118px] font-black tracking-tighter text-zinc-950 leading-[0.88] block"
+                  className="text-[52px] sm:text-[96px] md:text-[118px] font-black tracking-tighter text-zinc-950 leading-[0.88] block"
                 >
                   {line}
                 </motion.h1>

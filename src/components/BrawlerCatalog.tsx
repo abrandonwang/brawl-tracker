@@ -48,7 +48,7 @@ export default function BrawlerCatalog({ brawlers, activeRarity, search }: Props
                             </div>
                             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-2">
                                 {group?.map(brawler => (
-                                    <Link href={`/brawlers/${brawler.id}`} key={brawler.id} className="group cursor-pointer bg-zinc-900 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all duration-100">
+                                    <Link href={`/brawlers/${brawler.id}`} key={brawler.id} className="group cursor-pointer bg-zinc-900 border border-white/5 rounded-md overflow-hidden hover:border-white/20 transition-all duration-100">
                                         <div className="aspect-square p-1.5">
                                             <img
                                                 src={brawler.imageUrl2}
