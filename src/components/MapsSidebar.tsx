@@ -2,7 +2,6 @@
 
 import { Search } from "lucide-react"
 
-// ─── Mode display config ────────────────────────────────────────
 const MODE_CONFIG: Record<string, { label: string; color: string }> = {
   brawlBall: { label: "Brawl Ball", color: "#8CA0EB" },
   gemGrab: { label: "Gem Grab", color: "#9B59B6" },
@@ -34,7 +33,6 @@ function getModeColor(mode: string): string {
   return MODE_CONFIG[mode]?.color || "#ffffff"
 }
 
-// ─── Types ──────────────────────────────────────────────────────
 interface ModeInfo {
   mode: string
   totalBattles: number
@@ -54,43 +52,47 @@ const linkActive = `${linkBase} bg-[#FFD400] text-black`
 
 export default function MapsSidebar({ modes, selectedMode, setSelectedMode, mapSearch, setMapSearch }: Props) {
   return (
-    <aside className="w-full lg:w-64 shrink-0 h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-white/10 py-5 lg:py-10 px-5 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto">
+    <aside className="w-full lg:w-64 shrink-0 h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col lg:overflow-y-auto">
+
       {/* Search */}
-      <div className="flex items-center gap-2.5 bg-white/10 border border-white/20 rounded px-4 py-2.5 mb-4">
-        <Search size={13} className="text-white/60 shrink-0" />
-        <input
-          value={mapSearch}
-          onChange={e => setMapSearch(e.target.value)}
-          placeholder="Search maps"
-          className="bg-transparent text-xs text-white outline-none placeholder:text-white/40 w-full"
-        />
+      <div className="px-4 pt-4 pb-3 lg:px-5 lg:pt-10 lg:pb-4">
+        <div className="flex items-center gap-2.5 bg-white/10 border border-white/20 rounded px-4 py-2.5">
+          <Search size={13} className="text-white/60 shrink-0" />
+          <input
+            value={mapSearch}
+            onChange={e => setMapSearch(e.target.value)}
+            placeholder="Search maps"
+            className="bg-transparent text-xs text-white outline-none placeholder:text-white/40 w-full"
+          />
+        </div>
       </div>
 
-      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-1">Mode</p>
+      {/* Filters */}
+      <div className="lg:px-5 lg:pb-10 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible px-4 pb-3 scrollbar-none">
+        <p className="hidden lg:block text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-1">Mode</p>
 
-      {/* All button */}
-      <button
-        onClick={() => setSelectedMode(null)}
-        className={selectedMode === null ? linkActive : linkInactive}
-      >
-        All
-      </button>
+        <button
+          onClick={() => setSelectedMode(null)}
+          className={selectedMode === null ? linkActive : linkInactive}
+        >
+          All
+        </button>
 
-      {/* Mode buttons */}
-      {modes.map((m) => {
-        const isActive = selectedMode === m.mode
-        const color = getModeColor(m.mode)
-        return (
-          <button
-            key={m.mode}
-            onClick={() => setSelectedMode(isActive ? null : m.mode)}
-            className={isActive ? linkBase : linkInactive}
-            style={isActive ? { backgroundColor: `${color}20`, color } : undefined}
-          >
-            {getModeName(m.mode)}
-          </button>
-        )
-      })}
+        {modes.map((m) => {
+          const isActive = selectedMode === m.mode
+          const color = getModeColor(m.mode)
+          return (
+            <button
+              key={m.mode}
+              onClick={() => setSelectedMode(isActive ? null : m.mode)}
+              className={isActive ? linkBase : linkInactive}
+              style={isActive ? { backgroundColor: `${color}20`, color } : undefined}
+            >
+              {getModeName(m.mode)}
+            </button>
+          )
+        })}
+      </div>
     </aside>
   )
 }

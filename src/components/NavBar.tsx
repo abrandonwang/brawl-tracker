@@ -96,7 +96,7 @@ export default function NavBar() {
             {isMenuOpen && (
                 <div className="fixed inset-0 z-[150] lg:hidden" onClick={() => setIsMenuOpen(false)}>
                     <div
-                        className={`absolute top-[80px] right-4 w-44 rounded-lg shadow-2xl border overflow-hidden animate-in zoom-in-95 slide-in-from-top-1 duration-150 ${
+                        className={`absolute top-[56px] right-4 w-44 rounded-lg shadow-2xl border overflow-hidden animate-in zoom-in-95 slide-in-from-top-1 duration-150 ${
                             isDark ? "bg-zinc-900 border-white/10" : "bg-white border-zinc-100 shadow-zinc-200/60"
                         }`}
                         onClick={e => e.stopPropagation()}

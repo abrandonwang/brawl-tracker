@@ -10,48 +10,52 @@ interface Props {
     setSearch: (s: string) => void
 }
 
-const linkBase = "text-xs font-semibold tracking-tight transition-all duration-200 px-3 py-1.5 rounded text-left"
+const linkBase = "text-xs font-semibold tracking-tight transition-all duration-200 px-3 py-1.5 rounded text-left whitespace-nowrap"
 const linkInactive = `${linkBase} text-white/50 hover:text-white hover:bg-white/5`
 const linkActive = `${linkBase} bg-[#FFD400] text-black`
 
 export default function BrawlersSidebar({ rarities, activeRarity, setActiveRarity, search, setSearch }: Props) {
     return (
-        <aside className="w-full lg:w-64 shrink-0 h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-white/10 py-5 lg:py-10 px-5 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto">
+        <aside className="w-full lg:w-64 shrink-0 h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col lg:overflow-y-auto">
+
             {/* Search */}
-            <div className="flex items-center gap-2.5 bg-white/10 border border-white/20 rounded px-4 py-2.5 mb-4">
-                <Search size={13} className="text-white/60 shrink-0" />
-                <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search brawlers"
-                    className="bg-transparent text-xs text-white outline-none placeholder:text-white/40 w-full"
-                />
+            <div className="px-4 pt-4 pb-3 lg:px-5 lg:pt-10 lg:pb-4">
+                <div className="flex items-center gap-2.5 bg-white/10 border border-white/20 rounded px-4 py-2.5">
+                    <Search size={13} className="text-white/60 shrink-0" />
+                    <input
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Search brawlers"
+                        className="bg-transparent text-xs text-white outline-none placeholder:text-white/40 w-full"
+                    />
+                </div>
             </div>
 
-            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-1">Rarity</p>
+            {/* Filters */}
+            <div className="lg:px-5 lg:pb-10 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible px-4 pb-3 lg:pb-0 scrollbar-none">
+                <p className="hidden lg:block text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-1">Rarity</p>
 
-            {/* All button */}
-            <button
-                onClick={() => setActiveRarity(null)}
-                className={activeRarity === null ? linkActive : linkInactive}
-            >
-                All
-            </button>
+                <button
+                    onClick={() => setActiveRarity(null)}
+                    className={activeRarity === null ? linkActive : linkInactive}
+                >
+                    All
+                </button>
 
-            {/* Rarity buttons */}
-            {rarities.map(({ name, color }) => {
-                const isActive = activeRarity === name
-                return (
-                    <button
-                        key={name}
-                        onClick={() => setActiveRarity(isActive ? null : name)}
-                        className={isActive ? linkBase : linkInactive}
-                        style={isActive ? { backgroundColor: `${color}20`, color } : undefined}
-                    >
-                        {name}
-                    </button>
-                )
-            })}
+                {rarities.map(({ name, color }) => {
+                    const isActive = activeRarity === name
+                    return (
+                        <button
+                            key={name}
+                            onClick={() => setActiveRarity(isActive ? null : name)}
+                            className={isActive ? linkBase : linkInactive}
+                            style={isActive ? { backgroundColor: `${color}20`, color } : undefined}
+                        >
+                            {name}
+                        </button>
+                    )
+                })}
+            </div>
         </aside>
     )
 }
