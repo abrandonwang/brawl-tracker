@@ -87,6 +87,8 @@ async function apiFetch(endpoint: string): Promise<any> {
 
     if (res.status === 404) return null;
 
+    console.log(`    API error ${res.status} for ${endpoint}`);
+
     if (res.status === 503) {
       await sleep(BACKOFF_BASE_MS * Math.pow(2, attempt));
       continue;
