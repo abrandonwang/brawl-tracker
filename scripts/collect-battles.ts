@@ -12,8 +12,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 const BASE_URL = "https://api.brawlstars.com/v1";
 
 // ─── Tuning ─────────────────────────────────────────────────────
-const CONCURRENCY = 8; // Parallel API requests
-const DB_BATCH_SIZE = 50; // Write to DB every N tags
+const CONCURRENCY = 4;
+const DB_BATCH_SIZE = 200;
 const MAX_RETRIES = 3;
 const BACKOFF_BASE_MS = 2000;
 
@@ -387,6 +387,8 @@ async function main() {
     await runCycle(cycle);
     await resetAllTags();
     cycle++;
+    console.log("  Sleeping 4h before next cycle...");
+    await sleep(4 * 60 * 60 * 1000);
   }
 }
 
